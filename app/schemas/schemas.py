@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, Field
 from typing import Optional, List
 from datetime import datetime
 
@@ -16,7 +16,7 @@ class UserBase(BaseModel):
     name: str
 
 class UserCreate(UserBase):
-    password: str
+    password: str = Field(..., min_length=8, pattern=r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,}$", description="Minimal 8 karakter, ada huruf besar, huruf kecil, dan angka.")
     role_id: Optional[str] = None
 
 class UserResponse(UserBase):

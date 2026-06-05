@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+
+{% block title %}Daftar Akun - Klinik Makmur Jaya{% endblock %}
+
+{% block content %}
+<div class="min-h-[70vh] flex flex-col justify-center items-center py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-md w-full bg-white p-8 rounded-xl shadow-md border border-k24-border">
+        <div class="text-center mb-8">
+            <i data-lucide="user-plus" class="text-k24-primary w-12 h-12 mx-auto mb-4"></i>
+            <h2 class="text-3xl font-extrabold text-k24-textPrimary">Buat Akun Baru</h2>
+            <p class="mt-2 text-sm text-k24-textSecondary">
+                Sudah punya akun? <a href="/login" class="font-medium text-k24-primary hover:text-green-700">Masuk di sini</a>
+            </p>
+        </div>
+        
+        <form class="space-y-6" id="registerForm">
+            <div>
+                <label for="name" class="block text-sm font-medium text-k24-textPrimary mb-1">Nama Lengkap</label>
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <i data-lucide="user" class="h-5 w-5 text-gray-400"></i>
+                    </div>
+                    <input id="name" name="name" type="text" required class="appearance-none relative block w-full px-3 py-2 pl-10 border border-k24-border rounded-md placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-k24-primary focus:border-k24-primary sm:text-sm transition-colors" placeholder="Budi Santoso">
+                </div>
+            </div>
+
+            <div>
+                <label for="email" class="block text-sm font-medium text-k24-textPrimary mb-1">Email address</label>
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <i data-lucide="mail" class="h-5 w-5 text-gray-400"></i>
+                    </div>
+                    <input id="email" name="email" type="email" autocomplete="email" required class="appearance-none relative block w-full px-3 py-2 pl-10 border border-k24-border rounded-md placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-k24-primary focus:border-k24-primary sm:text-sm transition-colors" placeholder="budi@email.com">
+                </div>
+            </div>
+
+            <div>
+                <label for="password" class="block text-sm font-medium text-k24-textPrimary mb-1">Password</label>
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <i data-lucide="lock" class="h-5 w-5 text-gray-400"></i>
+                    </div>
+                    <input id="password" name="password" type="password" required pattern="^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,}$" class="appearance-none relative block w-full px-3 py-2 pl-10 border border-k24-border rounded-md placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-k24-primary focus:border-k24-primary sm:text-sm transition-colors" placeholder="Minimal 8 karakter, huruf besar & angka">
+                </div>
+                <p class="text-xs text-k24-textSecondary mt-1">Harus mengandung minimal 8 karakter, 1 huruf besar, 1 huruf kecil, dan 1 angka.</p>
+            </div>
+
+            <div>
+                <button type="submit" class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-bold rounded-md text-white bg-k24-primary hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-k24-primary transition-colors">
+                    Daftar Sekarang
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.getElementById('registerForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const data = {
+            name: e.target.name.value,
+            email: e.target.email.value,
+            password: e.target.password.value
+        };
+
+        try {
+            const res = await fetch('/api/v1/auth/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            
+            if(res.ok) {
+                alert('Pendaftaran berhasil! Silakan login.');
+                window.location.href = '/login';
+            } else {
+                const error = await res.json();
+                alert('Gagal: ' + (error.detail || 'Terjadi kesalahan'));
+            }
+        } catch (err) {
+            alert('Kesalahan jaringan.');
+        }
+    });
+</script>
+{% endblock %}

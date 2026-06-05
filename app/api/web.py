@@ -3,19 +3,20 @@ from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
 from app.core.database import get_db
+from app.api import deps
 from app.repositories.repositories import medicine_repo, category_repo
 
 router = APIRouter()
 templates = Jinja2Templates(directory="app/templates")
 
 @router.get("/", response_class=HTMLResponse)
-def read_home(request: Request):
+def read_home(request: Request, current_user = Depends(deps.get_current_user)):
     return templates.TemplateResponse(
-        request=request, name="base.html", context={"user": None}
+        request=request, name="base.html", context={"user": current_user}
     )
 
 @router.get("/katalog", response_class=HTMLResponse)
-def read_catalog(request: Request, db: Session = Depends(get_db)):
+def read_catalog(request: Request, db: Session = Depends(get_db), current_user = Depends(deps.get_current_user)):
     medicines = medicine_repo.get_multi(db, limit=50)
     
     # Normally we would join with inventory to get stock, but for template mock:
@@ -35,23 +36,37 @@ def read_catalog(request: Request, db: Session = Depends(get_db)):
     )
 
 @router.get("/keranjang", response_class=HTMLResponse)
-def read_cart(request: Request):
+def read_cart(request: Request, current_user = Depends(deps.get_current_user)):
     return templates.TemplateResponse(
-        request=request, name="keranjang.html", context={"user": None}
+        request=request, name="keranjang.html", context={"user": current_user}
     )
 
 @router.get("/checkout", response_class=HTMLResponse)
-def read_checkout(request: Request):
-    # Pass dummy user for demo purposes if not logged in real implementation
-    dummy_user = {"name": "Budi Santoso", "email": "budi@example.com"}
+def read_checkout(request: Request, current_user = Depends(deps.get_current_user)):
     return templates.TemplateResponse(
-        request=request, name="checkout.html", context={"user": dummy_user}
+        request=request, name="checkout.html", context={"user": current_user}
+    )
+
+import uuid
+
+@router.get("/login", response_class=HTMLResponse)
+def read_login(request: Request):
+    csrf_token = str(uuid.uuid4())
+    request.session["csrf_token"] = csrf_token
+    return templates.TemplateResponse(
+        request=request, name="login.html", context={"user": None, "csrf_token": csrf_token}
+    )
+
+@router.get("/register", response_class=HTMLResponse)
+def read_register(request: Request):
+    csrf_token = str(uuid.uuid4())
+    request.session["csrf_token"] = csrf_token
+    return templates.TemplateResponse(
+        request=request, name="register.html", context={"user": None, "csrf_token": csrf_token}
     )
 
 @router.get("/admin/dashboard", response_class=HTMLResponse)
-def read_admin_dashboard(request: Request):
-    # Normally secured by Depends(get_current_admin)
-    dummy_admin = {"name": "Admin Apotek", "role": {"name": "Admin"}}
+def read_admin_dashboard(request: Request, current_user = Depends(deps.get_current_admin)):
     return templates.TemplateResponse(
-        request=request, name="admin_dashboard.html", context={"user": dummy_admin}
+        request=request, name="admin_dashboard.html", context={"user": current_user}
     )

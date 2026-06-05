@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.core.security import verify_password, get_password_hash, create_access_token
 from app.core.config import settings
-from app.models.models import User, Role
+from app.models.models import User, Role, AuditLog
 from app.schemas.schemas import Token, UserCreate, UserResponse
 from app.repositories.repositories import user_repo, role_repo
 
@@ -19,6 +19,11 @@ def login_access_token(
     if not user or not verify_password(form_data.password, user.hashed_password):
         raise HTTPException(status_code=400, detail="Incorrect email or password")
     
+    # Audit log
+    audit_log = AuditLog(user_id=user.id, action="LOGIN_API", ip_address="API")
+    db.add(audit_log)
+    db.commit()
+
     access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     return {
         "access_token": create_access_token(
@@ -26,6 +31,54 @@ def login_access_token(
         ),
         "token_type": "bearer",
     }
+
+from fastapi import Response, Form, Request
+from fastapi.responses import RedirectResponse
+
+@router.post("/login-web")
+def login_web(
+    request: Request,
+    response: Response,
+    db: Session = Depends(get_db), 
+    email: str = Form(...), 
+    password: str = Form(...),
+    csrf_token: str = Form(...)
+):
+    # Validate CSRF
+    session_csrf = request.session.get("csrf_token")
+    if not session_csrf or session_csrf != csrf_token:
+        raise HTTPException(status_code=400, detail="Invalid CSRF token")
+
+    user = user_repo.get_by_email(db, email=email)
+    if not user or not verify_password(password, user.hashed_password):
+        # In a real app we'd redirect back with an error flash message
+        raise HTTPException(status_code=400, detail="Incorrect email or password")
+    
+    # Audit log
+    audit_log = AuditLog(user_id=user.id, action="LOGIN_WEB")
+    db.add(audit_log)
+    db.commit()
+
+    access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+    token = create_access_token(user.id, expires_delta=access_token_expires)
+    
+    # Redirect to home or dashboard based on role
+    redirect_url = "/admin/dashboard" if user.role and user.role.name == "Admin" else "/"
+    redirect_response = RedirectResponse(url=redirect_url, status_code=302)
+    redirect_response.set_cookie(
+        key="access_token", 
+        value=f"Bearer {token}", 
+        httponly=True, 
+        max_age=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+        samesite="lax"
+    )
+    return redirect_response
+
+@router.get("/logout")
+def logout_web(db: Session = Depends(get_db)):
+    redirect_response = RedirectResponse(url="/", status_code=302)
+    redirect_response.delete_cookie("access_token")
+    return redirect_response
 
 @router.post("/register", response_model=UserResponse)
 def register_user(

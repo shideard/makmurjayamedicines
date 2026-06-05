@@ -119,3 +119,16 @@ class Payment(Base):
     
     order = relationship("Order", back_populates="payment")
     verifier = relationship("User")
+
+class AuditLog(Base):
+    __tablename__ = "audit_logs"
+    id = Column(String, primary_key=True, default=generate_uuid)
+    user_id = Column(String, ForeignKey("users.id"), nullable=True)
+    action = Column(String, nullable=False) # e.g., "LOGIN", "CREATE_MEDICINE"
+    entity = Column(String, nullable=True)
+    entity_id = Column(String, nullable=True)
+    details = Column(Text, nullable=True)
+    ip_address = Column(String, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    
+    user = relationship("User")
