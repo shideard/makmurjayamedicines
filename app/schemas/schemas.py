@@ -1,0 +1,58 @@
+from pydantic import BaseModel, EmailStr
+from typing import Optional, List
+from datetime import datetime
+
+# Token
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+
+class TokenPayload(BaseModel):
+    sub: Optional[str] = None
+
+# User
+class UserBase(BaseModel):
+    email: EmailStr
+    name: str
+
+class UserCreate(UserBase):
+    password: str
+    role_id: Optional[str] = None
+
+class UserResponse(UserBase):
+    id: str
+    role_id: Optional[str] = None
+    created_at: datetime
+    class Config:
+        from_attributes = True
+
+class UserLogin(BaseModel):
+    email: EmailStr
+    password: str
+
+# Medicine
+class MedicineBase(BaseModel):
+    name: str
+    slug: str
+    price: float
+    description: Optional[str] = None
+    category_id: str
+    supplier_id: Optional[str] = None
+
+class MedicineCreate(MedicineBase):
+    pass
+
+class MedicineResponse(MedicineBase):
+    id: str
+    class Config:
+        from_attributes = True
+
+# Checkout / Order
+class CartItem(BaseModel):
+    id: str # medicine_id
+    quantity: int
+    name: Optional[str] = None
+
+class CheckoutRequest(BaseModel):
+    items: List[CartItem]
+    payment_method: str # BANK_TRANSFER, E_WALLET, CASH
