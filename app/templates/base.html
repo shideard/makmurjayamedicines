@@ -96,7 +96,7 @@
                                 {% elif user.role and user.role.name in ['Pelanggan', 'Customer'] %}
                                     <a href="/pelanggan/dashboard" class="block px-4 py-2 text-sm text-k24-textPrimary hover:bg-gray-100">Dasbor Pasien</a>
                                 {% endif %}
-                                <a href="/logout" class="block px-4 py-2 text-sm text-k24-danger hover:bg-gray-100">Keluar</a>
+                                <a href="/api/v1/auth/logout" class="block px-4 py-2 text-sm text-k24-danger hover:bg-gray-100">Keluar</a>
                             </div>
                         </div>
                     {% else %}

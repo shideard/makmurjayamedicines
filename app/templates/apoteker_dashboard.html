@@ -19,7 +19,7 @@
             </div>
             <div>
                 <p class="text-sm font-medium text-k24-textSecondary">Verifikasi Resep Tertunda</p>
-                <p class="text-3xl font-bold text-k24-textPrimary">4</p>
+                <p class="text-3xl font-bold text-k24-textPrimary">{{ pending_prescriptions | length }}</p>
             </div>
         </div>
         <div class="bg-white p-6 rounded-xl border border-k24-border shadow-sm flex items-center gap-4">
@@ -28,7 +28,7 @@
             </div>
             <div>
                 <p class="text-sm font-medium text-k24-textSecondary">Peringatan Stok Menipis</p>
-                <p class="text-3xl font-bold text-k24-textPrimary">12</p>
+                <p class="text-3xl font-bold text-k24-textPrimary">{{ low_stock_count }}</p>
             </div>
         </div>
         <div class="bg-white p-6 rounded-xl border border-k24-border shadow-sm flex items-center gap-4">
@@ -37,7 +37,7 @@
             </div>
             <div>
                 <p class="text-sm font-medium text-k24-textSecondary">Kedaluwarsa < 3 Bulan</p>
-                <p class="text-3xl font-bold text-k24-textPrimary">3</p>
+                <p class="text-3xl font-bold text-k24-textPrimary">{{ expiring_count }}</p>
             </div>
         </div>
     </div>
@@ -47,9 +47,38 @@
             <h2 class="text-lg font-bold text-k24-textPrimary">Antrean Verifikasi Resep</h2>
             <button class="text-sm text-k24-primary font-medium hover:underline">Lihat Semua</button>
         </div>
-        <div class="p-6 text-center text-k24-textSecondary">
-            <i data-lucide="clipboard-check" class="w-12 h-12 mx-auto mb-2 text-gray-300"></i>
-            <p>Belum ada resep yang menunggu verifikasi saat ini.</p>
+        <div class="p-6">
+            {% if pending_prescriptions %}
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-white border-b border-k24-border">
+                        <th class="py-3 px-4 text-sm font-semibold text-k24-textSecondary">Nama Dokter</th>
+                        <th class="py-3 px-4 text-sm font-semibold text-k24-textSecondary">Pasien</th>
+                        <th class="py-3 px-4 text-sm font-semibold text-k24-textSecondary">Status</th>
+                        <th class="py-3 px-4 text-sm font-semibold text-k24-textSecondary">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for rx in pending_prescriptions %}
+                    <tr class="border-b border-gray-100 hover:bg-gray-50">
+                        <td class="py-3 px-4 font-medium text-k24-textPrimary">{{ rx.doctor_name }}</td>
+                        <td class="py-3 px-4 text-k24-textSecondary text-sm">{{ rx.customer.user.name }}</td>
+                        <td class="py-3 px-4"><span class="px-2 py-1 bg-yellow-100 text-yellow-800 rounded text-xs font-medium">{{ rx.status }}</span></td>
+                        <td class="py-3 px-4">
+                            <form action="/api/v1/prescriptions/{{ rx.id }}/verify" method="POST" class="inline">
+                                <button type="submit" class="text-white bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded text-xs font-bold transition-colors shadow-sm">Verifikasi</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endendfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <div class="text-center text-k24-textSecondary">
+                <i data-lucide="clipboard-check" class="w-12 h-12 mx-auto mb-2 text-gray-300"></i>
+                <p>Belum ada resep yang menunggu verifikasi saat ini.</p>
+            </div>
+            {% endif %}
         </div>
     </div>
 </div>

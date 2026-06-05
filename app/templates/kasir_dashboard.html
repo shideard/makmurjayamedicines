@@ -15,19 +15,19 @@
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <div class="bg-white p-6 rounded-xl border border-k24-border shadow-sm flex flex-col">
             <p class="text-sm font-medium text-k24-textSecondary mb-2">Total Transaksi Hari Ini</p>
-            <p class="text-3xl font-bold text-k24-textPrimary">42</p>
+            <p class="text-3xl font-bold text-k24-textPrimary">{{ total_transactions }}</p>
         </div>
         <div class="bg-white p-6 rounded-xl border border-k24-border shadow-sm flex flex-col">
             <p class="text-sm font-medium text-k24-textSecondary mb-2">Menunggu Pembayaran</p>
-            <p class="text-3xl font-bold text-yellow-600">8</p>
+            <p class="text-3xl font-bold text-yellow-600">{{ pending_orders | length }}</p>
         </div>
         <div class="bg-white p-6 rounded-xl border border-k24-border shadow-sm flex flex-col">
             <p class="text-sm font-medium text-k24-textSecondary mb-2">Siap Diambil</p>
-            <p class="text-3xl font-bold text-green-600">5</p>
+            <p class="text-3xl font-bold text-green-600">{{ ready_count }}</p>
         </div>
         <div class="bg-white p-6 rounded-xl border border-k24-border shadow-sm flex flex-col">
             <p class="text-sm font-medium text-k24-textSecondary mb-2">Pemasukan Hari Ini</p>
-            <p class="text-2xl font-bold text-k24-primary">Rp 4.520.000</p>
+            <p class="text-2xl font-bold text-k24-primary">Rp {{ "{:,.0f}".format(today_income).replace(",", ".") }}</p>
         </div>
     </div>
 
@@ -39,29 +39,36 @@
             </button>
         </div>
         
-        <div class="overflow-x-auto">
+        <div class="overflow-x-auto p-4">
+            {% if pending_orders %}
             <table class="w-full text-left border-collapse">
                 <thead>
                     <tr class="bg-white border-b border-k24-border">
-                        <th class="py-3 px-4 text-sm font-semibold text-k24-textSecondary">ID Pesanan</th>
+                        <th class="py-3 px-4 text-sm font-semibold text-k24-textSecondary">ID Invoice</th>
                         <th class="py-3 px-4 text-sm font-semibold text-k24-textSecondary">Waktu</th>
                         <th class="py-3 px-4 text-sm font-semibold text-k24-textSecondary">Total</th>
-                        <th class="py-3 px-4 text-sm font-semibold text-k24-textSecondary">Metode</th>
                         <th class="py-3 px-4 text-sm font-semibold text-k24-textSecondary">Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
+                    {% for order in pending_orders %}
                     <tr class="border-b border-gray-100 hover:bg-gray-50">
-                        <td class="py-3 px-4 font-medium text-k24-textPrimary">ORD-1205</td>
-                        <td class="py-3 px-4 text-k24-textSecondary text-sm">10:45 AM</td>
-                        <td class="py-3 px-4 font-medium text-k24-primary">Rp 120.000</td>
-                        <td class="py-3 px-4"><span class="px-2 py-1 bg-yellow-100 text-yellow-800 rounded text-xs font-medium">Bank Transfer</span></td>
+                        <td class="py-3 px-4 font-medium text-k24-textPrimary">{{ order.invoice_number }}</td>
+                        <td class="py-3 px-4 text-k24-textSecondary text-sm">{{ order.created_at.strftime("%H:%M") }}</td>
+                        <td class="py-3 px-4 font-medium text-k24-primary">Rp {{ "{:,.0f}".format(order.grand_total).replace(",", ".") }}</td>
                         <td class="py-3 px-4">
-                            <button class="text-blue-600 hover:text-blue-800 text-sm font-medium">Konfirmasi Bayar</button>
+                            <button class="text-blue-600 hover:text-blue-800 text-sm font-medium">Proses</button>
                         </td>
                     </tr>
+                    {% endfor %}
                 </tbody>
             </table>
+            {% else %}
+            <div class="text-center text-k24-textSecondary py-8">
+                <i data-lucide="check-circle" class="w-12 h-12 mx-auto mb-2 text-green-300"></i>
+                <p>Belum ada antrean pembayaran saat ini.</p>
+            </div>
+            {% endif %}
         </div>
     </div>
 </div>
