@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard Admin - Klinik Makmur Jaya{% endblock %}
+
+{% block content %}
+<div class="mb-8">
+    <h1 class="text-2xl font-bold text-k24-textPrimary">Ringkasan Sistem</h1>
+    <p class="text-k24-textSecondary">Pantau penjualan, stok obat, dan notifikasi terbaru.</p>
+</div>
+
+<!-- Stats Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    <div class="bg-white rounded-lg shadow-sm border border-k24-border p-6 flex items-center">
+        <div class="p-4 rounded-full text-white mr-4 bg-k24-primary">
+            <i data-lucide="dollar-sign" class="w-6 h-6"></i>
+        </div>
+        <div>
+            <p class="text-sm text-k24-textSecondary font-medium">Total Pendapatan</p>
+            <h3 class="text-2xl font-bold text-k24-textPrimary">Rp 125M</h3>
+        </div>
+    </div>
+    <div class="bg-white rounded-lg shadow-sm border border-k24-border p-6 flex items-center">
+        <div class="p-4 rounded-full text-white mr-4 bg-blue-600">
+            <i data-lucide="shopping-cart" class="w-6 h-6"></i>
+        </div>
+        <div>
+            <p class="text-sm text-k24-textSecondary font-medium">Total Pesanan</p>
+            <h3 class="text-2xl font-bold text-k24-textPrimary">342</h3>
+        </div>
+    </div>
+    <div class="bg-white rounded-lg shadow-sm border border-k24-border p-6 flex items-center">
+        <div class="p-4 rounded-full text-white mr-4 bg-purple-600">
+            <i data-lucide="users" class="w-6 h-6"></i>
+        </div>
+        <div>
+            <p class="text-sm text-k24-textSecondary font-medium">Total Pelanggan</p>
+            <h3 class="text-2xl font-bold text-k24-textPrimary">128</h3>
+        </div>
+    </div>
+    <div class="bg-white rounded-lg shadow-sm border border-k24-border p-6 flex items-center">
+        <div class="p-4 rounded-full text-white mr-4 bg-k24-secondary">
+            <i data-lucide="pill" class="w-6 h-6"></i>
+        </div>
+        <div>
+            <p class="text-sm text-k24-textSecondary font-medium">Total Obat</p>
+            <h3 class="text-2xl font-bold text-k24-textPrimary">845</h3>
+        </div>
+    </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+    <!-- Alerts & Notifications -->
+    <div class="bg-white rounded-lg shadow-sm border border-k24-border p-6">
+        <h3 class="text-lg font-bold text-k24-textPrimary mb-4 flex items-center border-b border-k24-border pb-2">
+            <i data-lucide="alert-triangle" class="text-k24-warning w-5 h-5 mr-2"></i> 
+            Peringatan Sistem
+        </h3>
+        <div class="space-y-4 pt-2">
+            <div class="bg-yellow-50 border-l-4 border-k24-warning p-4 rounded-r-md">
+                <p class="text-sm text-yellow-800 font-medium flex items-start">
+                    <i data-lucide="info" class="w-4 h-4 mr-2 mt-0.5 flex-shrink-0"></i>
+                    12 Obat hampir habis (stok < 10)
+                </p>
+            </div>
+            <div class="bg-red-50 border-l-4 border-k24-danger p-4 rounded-r-md">
+                <p class="text-sm text-red-800 font-medium flex items-start">
+                    <i data-lucide="alert-circle" class="w-4 h-4 mr-2 mt-0.5 flex-shrink-0"></i>
+                    5 Pesanan gagal diverifikasi pembayarannya
+                </p>
+            </div>
+            <div class="bg-green-50 border-l-4 border-k24-success p-4 rounded-r-md">
+                <p class="text-sm text-green-800 font-medium flex items-start">
+                    <i data-lucide="check-circle" class="w-4 h-4 mr-2 mt-0.5 flex-shrink-0"></i>
+                    14 Pesanan baru menunggu pengiriman
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="bg-white rounded-lg shadow-sm border border-k24-border p-6 lg:col-span-2">
+        <h3 class="text-lg font-bold text-k24-textPrimary mb-4 border-b border-k24-border pb-2">Aksi Cepat</h3>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 pt-2">
+            <a href="#" class="flex flex-col items-center justify-center p-4 border border-k24-border rounded-lg hover:border-k24-primary hover:bg-green-50 transition-colors group">
+                <i data-lucide="plus-circle" class="w-8 h-8 text-k24-primary mb-2 group-hover:scale-110 transition-transform"></i>
+                <span class="text-sm font-medium text-k24-textPrimary text-center">Tambah Obat</span>
+            </a>
+            <a href="#" class="flex flex-col items-center justify-center p-4 border border-k24-border rounded-lg hover:border-k24-primary hover:bg-green-50 transition-colors group">
+                <i data-lucide="package-plus" class="w-8 h-8 text-k24-primary mb-2 group-hover:scale-110 transition-transform"></i>
+                <span class="text-sm font-medium text-k24-textPrimary text-center">Update Stok Batch</span>
+            </a>
+            <a href="#" class="flex flex-col items-center justify-center p-4 border border-k24-border rounded-lg hover:border-k24-primary hover:bg-green-50 transition-colors group">
+                <i data-lucide="receipt" class="w-8 h-8 text-k24-primary mb-2 group-hover:scale-110 transition-transform"></i>
+                <span class="text-sm font-medium text-k24-textPrimary text-center">Verifikasi Order</span>
+            </a>
+            <a href="#" class="flex flex-col items-center justify-center p-4 border border-k24-border rounded-lg hover:border-k24-primary hover:bg-green-50 transition-colors group">
+                <i data-lucide="file-bar-chart" class="w-8 h-8 text-k24-primary mb-2 group-hover:scale-110 transition-transform"></i>
+                <span class="text-sm font-medium text-k24-textPrimary text-center">Cetak Laporan</span>
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

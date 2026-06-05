@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="id" class="antialiased">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Klinik Makmur Jaya{% endblock %}</title>
+    
+    <!-- Tailwind CSS via CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Alpine.js for lightweight interactivity (modals, dropdowns) -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+    <!-- Lucide Icons via CDN -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        k24: {
+                            primary: '#1C805B',
+                            secondary: '#C28D0B',
+                            accent: '#C62828',
+                            success: '#16A34A',
+                            warning: '#C28D0B',
+                            danger: '#C62828',
+                            bg: '#F8FAFC',
+                            textPrimary: '#1F2937',
+                            textSecondary: '#6B7280',
+                            border: '#E5E7EB'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Custom Styles to enforce K-24 inspired branding */
+        body {
+            background-color: theme('colors.k24.bg');
+            color: theme('colors.k24.textPrimary');
+        }
+        
+        /* Focus styles for keyboard accessibility */
+        *:focus-visible {
+            outline: 2px solid theme('colors.k24.primary');
+            outline-offset: 2px;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+    <!-- Navbar -->
+    <nav class="bg-white border-b border-k24-border shadow-sm sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <a href="/" class="flex-shrink-0 flex items-center gap-2">
+                        <!-- Icon Placeholder -->
+                        <i data-lucide="cross" class="text-k24-primary w-8 h-8"></i>
+                        <span class="font-bold text-xl text-k24-primary tracking-tight">Klinik Makmur Jaya</span>
+                    </a>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <a href="/katalog" class="text-k24-textSecondary hover:text-k24-primary font-medium text-sm transition-colors">Katalog Obat</a>
+                    <a href="/keranjang" class="text-k24-textSecondary hover:text-k24-primary font-medium text-sm transition-colors relative">
+                        <i data-lucide="shopping-cart" class="w-5 h-5 inline"></i>
+                        <span class="absolute -top-2 -right-2 bg-k24-accent text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">0</span>
+                    </a>
+                    
+                    {% if user %}
+                        <!-- User Menu Dropdown -->
+                        <div x-data="{ open: false }" class="relative ml-3">
+                            <div>
+                                <button @click="open = !open" type="button" class="flex text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-k24-primary items-center gap-2" id="user-menu-button">
+                                    <span class="sr-only">Open user menu</span>
+                                    <div class="h-8 w-8 rounded-full bg-k24-primary text-white flex items-center justify-center font-bold">
+                                        {{ user.name[0] | upper }}
+                                    </div>
+                                    <span class="hidden md:block font-medium text-k24-textPrimary">{{ user.name }}</span>
+                                    <i data-lucide="chevron-down" class="w-4 h-4 text-k24-textSecondary"></i>
+                                </button>
+                            </div>
+                            <div x-show="open" @click.away="open = false" style="display: none;" class="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 bg-white ring-1 ring-black ring-opacity-5 focus:outline-none">
+                                {% if user.role.name == 'Admin' %}
+                                    <a href="/admin/dashboard" class="block px-4 py-2 text-sm text-k24-textPrimary hover:bg-gray-100">Dashboard Admin</a>
+                                {% endif %}
+                                <a href="/logout" class="block px-4 py-2 text-sm text-k24-danger hover:bg-gray-100">Keluar</a>
+                            </div>
+                        </div>
+                    {% else %}
+                        <a href="/login" class="text-k24-primary border border-k24-primary hover:bg-k24-primary hover:text-white px-4 py-2 rounded-md font-medium text-sm transition-colors">Masuk</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="flex-grow w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-k24-border mt-auto">
+        <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+            <p class="text-center text-sm text-k24-textSecondary">
+                &copy; 2026 Klinik Makmur Jaya. Sistem Manajemen Farmasi Terpadu.
+            </p>
+        </div>
+    </footer>
+
+    <!-- Initialize Lucide Icons -->
+    <script>
+        lucide.createIcons();
+    </script>
+    
+    {% block scripts %}{% endblock %}
+</body>
+</html>

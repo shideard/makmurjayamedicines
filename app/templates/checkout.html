@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+
+{% block title %}Pembayaran - Klinik Makmur Jaya{% endblock %}
+
+{% block content %}
+<div class="mb-8">
+    <h1 class="text-3xl font-bold text-k24-textPrimary mb-2">Selesaikan Pembayaran</h1>
+    <p class="text-k24-textSecondary">Pilih metode pembayaran dan pastikan detail pesanan sudah benar.</p>
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-2 gap-8" x-data="checkoutPage()">
+    <div class="space-y-6">
+        <div class="bg-white p-6 rounded-lg shadow-sm border border-k24-border">
+            <h3 class="text-lg font-bold mb-4 border-b border-k24-border pb-2 text-k24-textPrimary">Informasi Pelanggan</h3>
+            <p class="text-k24-textSecondary mb-2"><strong class="text-k24-textPrimary">Nama:</strong> {{ user.name if user else 'Guest' }}</p>
+            <p class="text-k24-textSecondary"><strong class="text-k24-textPrimary">Email:</strong> {{ user.email if user else 'Silakan login terlebih dahulu' }}</p>
+            
+            {% if not user %}
+            <div class="mt-4 p-4 bg-yellow-50 border border-k24-warning rounded-md">
+                <p class="text-sm text-yellow-800">Anda harus login untuk memproses pembayaran.</p>
+                <a href="/login" class="inline-block mt-2 text-k24-primary font-bold hover:underline">Login sekarang &rarr;</a>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="bg-white p-6 rounded-lg shadow-sm border border-k24-border">
+            <h3 class="text-lg font-bold mb-4 border-b border-k24-border pb-2 text-k24-textPrimary">Metode Pembayaran</h3>
+            <div class="space-y-3">
+                <label class="flex items-center p-4 border rounded-lg cursor-pointer transition-colors" :class="paymentMethod === 'BANK_TRANSFER' ? 'border-k24-primary bg-green-50' : 'border-k24-border hover:bg-gray-50'">
+                    <input type="radio" name="payment" value="BANK_TRANSFER" class="hidden" x-model="paymentMethod">
+                    <i data-lucide="credit-card" class="w-6 h-6 text-k24-textSecondary mr-3" :class="paymentMethod === 'BANK_TRANSFER' ? 'text-k24-primary' : ''"></i>
+                    <span class="font-medium" :class="paymentMethod === 'BANK_TRANSFER' ? 'text-k24-primary' : 'text-k24-textPrimary'">Transfer Bank (BCA, Mandiri, BNI)</span>
+                </label>
+                <label class="flex items-center p-4 border rounded-lg cursor-pointer transition-colors" :class="paymentMethod === 'E_WALLET' ? 'border-k24-primary bg-green-50' : 'border-k24-border hover:bg-gray-50'">
+                    <input type="radio" name="payment" value="E_WALLET" class="hidden" x-model="paymentMethod">
+                    <i data-lucide="wallet" class="w-6 h-6 text-k24-textSecondary mr-3" :class="paymentMethod === 'E_WALLET' ? 'text-k24-primary' : ''"></i>
+                    <span class="font-medium" :class="paymentMethod === 'E_WALLET' ? 'text-k24-primary' : 'text-k24-textPrimary'">E-Wallet (OVO, GoPay, Dana)</span>
+                </label>
+                <label class="flex items-center p-4 border rounded-lg cursor-pointer transition-colors" :class="paymentMethod === 'CASH' ? 'border-k24-primary bg-green-50' : 'border-k24-border hover:bg-gray-50'">
+                    <input type="radio" name="payment" value="CASH" class="hidden" x-model="paymentMethod">
+                    <i data-lucide="banknote" class="w-6 h-6 text-k24-textSecondary mr-3" :class="paymentMethod === 'CASH' ? 'text-k24-primary' : ''"></i>
+                    <span class="font-medium" :class="paymentMethod === 'CASH' ? 'text-k24-primary' : 'text-k24-textPrimary'">Bayar di Klinik (Cash)</span>
+                </label>
+            </div>
+        </div>
+    </div>
+
+    <div>
+        <div class="bg-white rounded-lg shadow-sm border border-k24-border p-6 sticky top-24">
+            <h3 class="text-lg font-bold text-k24-textPrimary mb-6 border-b border-k24-border pb-4">Ringkasan Pesanan</h3>
+            
+            <div class="space-y-4 mb-6" x-show="cart.length > 0">
+                <template x-for="item in cart" :key="item.id">
+                    <div class="flex justify-between text-sm">
+                        <span class="text-k24-textSecondary" x-text="`${item.name} x ${item.quantity}`"></span>
+                        <span class="font-medium text-k24-textPrimary" x-text="`Rp ${formatRupiah(item.price * item.quantity)}`"></span>
+                    </div>
+                </template>
+            </div>
+
+            <div class="border-t border-k24-border pt-4 space-y-4 mb-6">
+                <div class="flex justify-between text-k24-textSecondary">
+                    <span>Subtotal</span>
+                    <span>Rp <span x-text="formatRupiah(subtotal)"></span></span>
+                </div>
+                <div class="flex justify-between text-k24-textSecondary">
+                    <span>Pajak (11%)</span>
+                    <span>Rp <span x-text="formatRupiah(tax)"></span></span>
+                </div>
+                <div class="border-t border-k24-border pt-4 flex justify-between font-bold text-lg text-k24-textPrimary">
+                    <span>Total Keseluruhan</span>
+                    <span class="text-k24-primary">Rp <span x-text="formatRupiah(total)"></span></span>
+                </div>
+            </div>
+
+            <button 
+                @click="processCheckout" 
+                :disabled="cart.length === 0 || !paymentMethod || loading"
+                class="w-full bg-k24-primary hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-bold py-3 px-4 rounded-md transition-colors shadow-sm flex justify-center items-center"
+            >
+                <span x-show="!loading">Konfirmasi Pesanan</span>
+                <span x-show="loading">Memproses...</span>
+            </button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('alpine:init', () => {
+        Alpine.data('checkoutPage', () => ({
+            cart: JSON.parse(localStorage.getItem('k24_cart') || '[]'),
+            paymentMethod: '',
+            loading: false,
+            
+            get subtotal() {
+                return this.cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            },
+            get tax() {
+                return this.subtotal * 0.11;
+            },
+            get total() {
+                return this.subtotal + this.tax;
+            },
+            
+            formatRupiah(num) {
+                return num.toLocaleString('id-ID', { maximumFractionDigits: 0 });
+            },
+
+            async processCheckout() {
+                this.loading = true;
+                // Dummy processing
+                setTimeout(() => {
+                    this.loading = false;
+                    alert('Pembayaran berhasil dikonfirmasi! (Simulasi)');
+                    localStorage.removeItem('k24_cart');
+                    window.location.href = '/katalog';
+                }, 1500);
+            }
+        }))
+    });
+</script>
+{% endblock %}

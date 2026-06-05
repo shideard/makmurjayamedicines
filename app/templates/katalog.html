@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+
+{% block title %}Katalog Obat - Klinik Makmur Jaya{% endblock %}
+
+{% block content %}
+<div class="mb-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+    <div>
+        <h1 class="text-3xl font-bold text-k24-textPrimary mb-2">Katalog Obat</h1>
+        <p class="text-k24-textSecondary">Temukan obat bebas, suplemen, dan resep dokter dengan mudah.</p>
+    </div>
+    
+    <div class="w-full md:w-auto flex flex-col sm:flex-row gap-2">
+        <div class="relative">
+            <i data-lucide="search" class="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-k24-textSecondary"></i>
+            <input type="text" placeholder="Cari obat..." class="w-full pl-9 pr-4 py-2 border border-k24-border rounded-md focus:ring-2 focus:ring-k24-primary focus:border-k24-primary outline-none transition-all">
+        </div>
+        <div class="relative">
+            <i data-lucide="filter" class="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-k24-textSecondary"></i>
+            <select class="w-full pl-9 pr-8 py-2 border border-k24-border rounded-md bg-white focus:ring-2 focus:ring-k24-primary focus:border-k24-primary outline-none appearance-none transition-all cursor-pointer">
+                <option value="">Semua Kategori</option>
+                <!-- Categories will be injected here -->
+            </select>
+        </div>
+    </div>
+</div>
+
+<!-- Medicine Grid -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6" x-data="cartStore()">
+    {% for medicine in medicines %}
+    <div class="bg-white border border-k24-border rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow flex flex-col">
+        <!-- Placeholder Image -->
+        <div class="h-48 bg-gray-100 flex items-center justify-center p-6 border-b border-k24-border">
+            <i data-lucide="pill" class="w-16 h-16 text-gray-300"></i>
+        </div>
+        
+        <div class="p-5 flex-grow flex flex-col">
+            <div class="text-xs font-bold text-k24-primary uppercase tracking-wider mb-1">{{ medicine.category.name if medicine.category else 'Umum' }}</div>
+            <h3 class="text-lg font-bold text-k24-textPrimary mb-2 leading-tight flex-grow">{{ medicine.name }}</h3>
+            
+            <div class="flex items-center justify-between mt-4 mb-4">
+                <div class="text-xl font-extrabold text-k24-primary">Rp {{ "{:,.0f}".format(medicine.price).replace(',', '.') }}</div>
+                {% if medicine.stock and medicine.stock < 10 %}
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-k24-warning">Stok Menipis</span>
+                {% elif not medicine.stock or medicine.stock == 0 %}
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-k24-danger">Habis</span>
+                {% endif %}
+            </div>
+            
+            <button 
+                @click="addToCart('{{ medicine.id }}', '{{ medicine.name }}', {{ medicine.price }})"
+                {% if not medicine.stock or medicine.stock == 0 %}disabled{% endif %}
+                class="w-full bg-white text-k24-primary border-2 border-k24-primary hover:bg-k24-primary hover:text-white font-bold py-2 px-4 rounded-md flex items-center justify-center transition-colors disabled:opacity-50 disabled:cursor-not-allowed group"
+            >
+                <i data-lucide="shopping-cart" class="w-4 h-4 mr-2 group-hover:text-white transition-colors"></i>
+                Tambah
+            </button>
+        </div>
+    </div>
+    {% else %}
+    <div class="col-span-full py-12 text-center bg-white border border-k24-border rounded-lg">
+        <i data-lucide="package-x" class="w-12 h-12 text-gray-400 mx-auto mb-3"></i>
+        <h3 class="text-lg font-medium text-k24-textPrimary">Belum ada obat</h3>
+        <p class="text-k24-textSecondary">Data obat belum tersedia di sistem.</p>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Simple Alpine component to handle cart state via localStorage (since backend API needs token)
+    document.addEventListener('alpine:init', () => {
+        Alpine.data('cartStore', () => ({
+            cart: JSON.parse(localStorage.getItem('k24_cart') || '[]'),
+            
+            addToCart(id, name, price) {
+                const existing = this.cart.find(item => item.id === id);
+                if (existing) {
+                    existing.quantity += 1;
+                } else {
+                    this.cart.push({ id, name, price, quantity: 1 });
+                }
+                this.saveCart();
+                // Simple visual feedback
+                alert(`${name} ditambahkan ke keranjang!`);
+            },
+            
+            saveCart() {
+                localStorage.setItem('k24_cart', JSON.stringify(this.cart));
+                // Dispatch event to update navbar cart count if needed
+                window.dispatchEvent(new CustomEvent('cart-updated', { detail: this.cart }));
+            }
+        }))
+    });
+</script>
+{% endblock %}
