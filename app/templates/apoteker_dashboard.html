@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard Apoteker - Klinik Makmur Jaya{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <div class="flex justify-between items-center border-b border-k24-border pb-4">
+        <h1 class="text-2xl font-bold text-k24-textPrimary">Dashboard Apoteker</h1>
+        <div class="text-sm text-k24-textSecondary bg-white border border-k24-border px-3 py-1 rounded-full">
+            Role: <span class="font-bold text-k24-primary">{{ user.role.name }}</span>
+        </div>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="bg-white p-6 rounded-xl border border-k24-border shadow-sm flex items-center gap-4">
+            <div class="p-4 bg-yellow-100 text-yellow-700 rounded-lg">
+                <i data-lucide="file-signature" class="w-8 h-8"></i>
+            </div>
+            <div>
+                <p class="text-sm font-medium text-k24-textSecondary">Verifikasi Resep Tertunda</p>
+                <p class="text-3xl font-bold text-k24-textPrimary">4</p>
+            </div>
+        </div>
+        <div class="bg-white p-6 rounded-xl border border-k24-border shadow-sm flex items-center gap-4">
+            <div class="p-4 bg-red-100 text-red-700 rounded-lg">
+                <i data-lucide="alert-triangle" class="w-8 h-8"></i>
+            </div>
+            <div>
+                <p class="text-sm font-medium text-k24-textSecondary">Peringatan Stok Menipis</p>
+                <p class="text-3xl font-bold text-k24-textPrimary">12</p>
+            </div>
+        </div>
+        <div class="bg-white p-6 rounded-xl border border-k24-border shadow-sm flex items-center gap-4">
+            <div class="p-4 bg-green-100 text-green-700 rounded-lg">
+                <i data-lucide="calendar-off" class="w-8 h-8"></i>
+            </div>
+            <div>
+                <p class="text-sm font-medium text-k24-textSecondary">Kedaluwarsa < 3 Bulan</p>
+                <p class="text-3xl font-bold text-k24-textPrimary">3</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-xl shadow-sm border border-k24-border overflow-hidden">
+        <div class="p-4 border-b border-k24-border bg-gray-50 flex justify-between items-center">
+            <h2 class="text-lg font-bold text-k24-textPrimary">Antrean Verifikasi Resep</h2>
+            <button class="text-sm text-k24-primary font-medium hover:underline">Lihat Semua</button>
+        </div>
+        <div class="p-6 text-center text-k24-textSecondary">
+            <i data-lucide="clipboard-check" class="w-12 h-12 mx-auto mb-2 text-gray-300"></i>
+            <p>Belum ada resep yang menunggu verifikasi saat ini.</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

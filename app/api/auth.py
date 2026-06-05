@@ -63,7 +63,19 @@ def login_web(
     token = create_access_token(user.id, expires_delta=access_token_expires)
     
     # Redirect to home or dashboard based on role
-    redirect_url = "/admin/dashboard" if user.role and user.role.name == "Admin" else "/"
+    if user.role:
+        if user.role.name == "Admin":
+            redirect_url = "/admin/dashboard"
+        elif user.role.name == "Apoteker":
+            redirect_url = "/apoteker/dashboard"
+        elif user.role.name == "Kasir":
+            redirect_url = "/kasir/dashboard"
+        elif user.role.name in ["Pelanggan", "Customer"]:
+            redirect_url = "/pelanggan/dashboard"
+        else:
+            redirect_url = "/"
+    else:
+        redirect_url = "/"
     redirect_response = RedirectResponse(url=redirect_url, status_code=302)
     redirect_response.set_cookie(
         key="access_token", 

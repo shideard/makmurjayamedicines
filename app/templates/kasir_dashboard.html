@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard Kasir - Klinik Makmur Jaya{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <div class="flex justify-between items-center border-b border-k24-border pb-4">
+        <h1 class="text-2xl font-bold text-k24-textPrimary">Dashboard Kasir</h1>
+        <div class="text-sm text-k24-textSecondary bg-white border border-k24-border px-3 py-1 rounded-full">
+            Role: <span class="font-bold text-k24-primary">{{ user.role.name }}</span>
+        </div>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div class="bg-white p-6 rounded-xl border border-k24-border shadow-sm flex flex-col">
+            <p class="text-sm font-medium text-k24-textSecondary mb-2">Total Transaksi Hari Ini</p>
+            <p class="text-3xl font-bold text-k24-textPrimary">42</p>
+        </div>
+        <div class="bg-white p-6 rounded-xl border border-k24-border shadow-sm flex flex-col">
+            <p class="text-sm font-medium text-k24-textSecondary mb-2">Menunggu Pembayaran</p>
+            <p class="text-3xl font-bold text-yellow-600">8</p>
+        </div>
+        <div class="bg-white p-6 rounded-xl border border-k24-border shadow-sm flex flex-col">
+            <p class="text-sm font-medium text-k24-textSecondary mb-2">Siap Diambil</p>
+            <p class="text-3xl font-bold text-green-600">5</p>
+        </div>
+        <div class="bg-white p-6 rounded-xl border border-k24-border shadow-sm flex flex-col">
+            <p class="text-sm font-medium text-k24-textSecondary mb-2">Pemasukan Hari Ini</p>
+            <p class="text-2xl font-bold text-k24-primary">Rp 4.520.000</p>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-xl shadow-sm border border-k24-border overflow-hidden">
+        <div class="p-4 border-b border-k24-border bg-gray-50 flex justify-between items-center">
+            <h2 class="text-lg font-bold text-k24-textPrimary">Antrean Pembayaran & Pesanan</h2>
+            <button class="bg-k24-primary text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-green-700 transition-colors flex items-center gap-2">
+                <i data-lucide="scan-barcode" class="w-4 h-4"></i> Mode Point of Sales (POS)
+            </button>
+        </div>
+        
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-white border-b border-k24-border">
+                        <th class="py-3 px-4 text-sm font-semibold text-k24-textSecondary">ID Pesanan</th>
+                        <th class="py-3 px-4 text-sm font-semibold text-k24-textSecondary">Waktu</th>
+                        <th class="py-3 px-4 text-sm font-semibold text-k24-textSecondary">Total</th>
+                        <th class="py-3 px-4 text-sm font-semibold text-k24-textSecondary">Metode</th>
+                        <th class="py-3 px-4 text-sm font-semibold text-k24-textSecondary">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr class="border-b border-gray-100 hover:bg-gray-50">
+                        <td class="py-3 px-4 font-medium text-k24-textPrimary">ORD-1205</td>
+                        <td class="py-3 px-4 text-k24-textSecondary text-sm">10:45 AM</td>
+                        <td class="py-3 px-4 font-medium text-k24-primary">Rp 120.000</td>
+                        <td class="py-3 px-4"><span class="px-2 py-1 bg-yellow-100 text-yellow-800 rounded text-xs font-medium">Bank Transfer</span></td>
+                        <td class="py-3 px-4">
+                            <button class="text-blue-600 hover:text-blue-800 text-sm font-medium">Konfirmasi Bayar</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

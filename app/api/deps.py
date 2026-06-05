@@ -52,3 +52,14 @@ def get_current_apoteker(current_user: User = Depends(require_current_user)) -> 
             status_code=400, detail="The user doesn't have enough privileges"
         )
     return current_user
+
+def get_current_kasir(current_user: User = Depends(require_current_user)) -> User:
+    if not current_user.role or current_user.role.name not in ["Admin", "Kasir"]:
+        raise HTTPException(
+            status_code=400, detail="The user doesn't have enough privileges"
+        )
+    return current_user
+
+def get_current_pelanggan(current_user: User = Depends(require_current_user)) -> User:
+    # Pelanggan can be just require_current_user, but we enforce it if needed.
+    return current_user

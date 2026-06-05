@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, EmailStr, Field, field_validator
 from typing import Optional, List
 from datetime import datetime
 
@@ -16,8 +16,19 @@ class UserBase(BaseModel):
     name: str
 
 class UserCreate(UserBase):
-    password: str = Field(..., min_length=8, pattern=r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,}$", description="Minimal 8 karakter, ada huruf besar, huruf kecil, dan angka.")
+    password: str = Field(..., min_length=8, description="Minimal 8 karakter, ada huruf besar, huruf kecil, dan angka.")
     role_id: Optional[str] = None
+
+    @field_validator('password')
+    @classmethod
+    def validate_password(cls, v: str) -> str:
+        if not any(char.isupper() for char in v):
+            raise ValueError('Password harus memiliki minimal satu huruf besar')
+        if not any(char.islower() for char in v):
+            raise ValueError('Password harus memiliki minimal satu huruf kecil')
+        if not any(char.isdigit() for char in v):
+            raise ValueError('Password harus memiliki minimal satu angka')
+        return v
 
 class UserResponse(UserBase):
     id: str

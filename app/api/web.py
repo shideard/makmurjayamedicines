@@ -12,7 +12,7 @@ templates = Jinja2Templates(directory="app/templates")
 @router.get("/", response_class=HTMLResponse)
 def read_home(request: Request, current_user = Depends(deps.get_current_user)):
     return templates.TemplateResponse(
-        request=request, name="base.html", context={"user": current_user}
+        request=request, name="index.html", context={"user": current_user}
     )
 
 @router.get("/katalog", response_class=HTMLResponse)
@@ -88,4 +88,22 @@ def read_register(request: Request):
 def read_admin_dashboard(request: Request, current_user = Depends(deps.get_current_admin)):
     return templates.TemplateResponse(
         request=request, name="admin_dashboard.html", context={"user": current_user}
+    )
+
+@router.get("/apoteker/dashboard", response_class=HTMLResponse)
+def read_apoteker_dashboard(request: Request, current_user = Depends(deps.get_current_apoteker)):
+    return templates.TemplateResponse(
+        request=request, name="apoteker_dashboard.html", context={"user": current_user}
+    )
+
+@router.get("/kasir/dashboard", response_class=HTMLResponse)
+def read_kasir_dashboard(request: Request, current_user = Depends(deps.get_current_kasir)):
+    return templates.TemplateResponse(
+        request=request, name="kasir_dashboard.html", context={"user": current_user}
+    )
+
+@router.get("/pelanggan/dashboard", response_class=HTMLResponse)
+def read_pelanggan_dashboard(request: Request, current_user = Depends(deps.get_current_pelanggan)):
+    return templates.TemplateResponse(
+        request=request, name="pelanggan_dashboard.html", context={"user": current_user}
     )

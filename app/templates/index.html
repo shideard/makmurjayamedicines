@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+
+{% block title %}Beranda - Klinik Makmur Jaya{% endblock %}
+
+{% block content %}
+<div class="flex flex-col items-center justify-center min-h-[70vh] text-center px-4">
+    <!-- Icon / Logo Graphic -->
+    <div class="mb-8 p-6 bg-green-50 rounded-full border border-k24-primary shadow-sm inline-block">
+        <i data-lucide="cross" class="w-20 h-20 text-k24-primary"></i>
+    </div>
+
+    <!-- Hero Headline -->
+    <h1 class="text-4xl md:text-5xl font-extrabold text-k24-textPrimary tracking-tight mb-4">
+        Selamat Datang di <span class="text-k24-primary">Klinik Makmur Jaya</span>
+    </h1>
+    
+    <!-- Subtitle -->
+    <p class="text-lg md:text-xl text-k24-textSecondary max-w-2xl mb-10 leading-relaxed">
+        Sistem Manajemen Farmasi dan E-Commerce terpadu. Kami menyediakan pelayanan pembelian obat secara daring, penebusan resep dokter, dan pengiriman langsung ke alamat Anda dengan aman dan terpercaya.
+    </p>
+
+    <!-- Action Buttons -->
+    <div class="flex flex-col sm:flex-row gap-4 w-full sm:w-auto justify-center">
+        <a href="/katalog" class="flex items-center justify-center px-8 py-4 text-lg font-bold rounded-xl text-white bg-k24-primary hover:bg-green-700 transition-all shadow-md hover:shadow-lg transform hover:-translate-y-1">
+            <i data-lucide="shopping-bag" class="w-5 h-5 mr-2"></i>
+            Jelajahi Katalog Obat
+        </a>
+        {% if not user %}
+        <a href="/login" class="flex items-center justify-center px-8 py-4 text-lg font-bold rounded-xl text-k24-primary bg-white border-2 border-k24-primary hover:bg-green-50 transition-all shadow-sm">
+            <i data-lucide="log-in" class="w-5 h-5 mr-2"></i>
+            Masuk / Daftar Akun
+        </a>
+        {% else %}
+        <a href="/keranjang" class="flex items-center justify-center px-8 py-4 text-lg font-bold rounded-xl text-k24-primary bg-white border-2 border-k24-primary hover:bg-green-50 transition-all shadow-sm">
+            <i data-lucide="shopping-cart" class="w-5 h-5 mr-2"></i>
+            Lihat Keranjang Anda
+        </a>
+        {% endif %}
+    </div>
+
+    <!-- Feature Highlights -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mt-20 w-full text-left border-t border-k24-border pt-12">
+        <div class="flex flex-col items-center md:items-start">
+            <div class="p-3 bg-blue-50 text-blue-600 rounded-lg mb-4">
+                <i data-lucide="pill" class="w-8 h-8"></i>
+            </div>
+            <h3 class="text-xl font-bold text-k24-textPrimary mb-2">Obat Lengkap & Asli</h3>
+            <p class="text-k24-textSecondary text-center md:text-left text-sm">Menyediakan berbagai jenis obat bebas, suplemen, dan alat kesehatan dengan jaminan keaslian 100%.</p>
+        </div>
+        <div class="flex flex-col items-center md:items-start">
+            <div class="p-3 bg-red-50 text-k24-accent rounded-lg mb-4">
+                <i data-lucide="file-signature" class="w-8 h-8"></i>
+            </div>
+            <h3 class="text-xl font-bold text-k24-textPrimary mb-2">Penebusan Resep</h3>
+            <p class="text-k24-textSecondary text-center md:text-left text-sm">Unggah resep dokter Anda secara daring. Apoteker kami akan memverifikasi dan menyiapkan pesanan Anda.</p>
+        </div>
+        <div class="flex flex-col items-center md:items-start">
+            <div class="p-3 bg-yellow-50 text-k24-secondary rounded-lg mb-4">
+                <i data-lucide="truck" class="w-8 h-8"></i>
+            </div>
+            <h3 class="text-xl font-bold text-k24-textPrimary mb-2">Pengiriman Cepat</h3>
+            <p class="text-k24-textSecondary text-center md:text-left text-sm">Sistem terintegrasi yang memastikan pesanan segera diproses setelah pembayaran diverifikasi.</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

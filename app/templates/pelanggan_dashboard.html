@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block title %}Dasbor Pasien - Klinik Makmur Jaya{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-k24-border pb-4 gap-4">
+        <div>
+            <h1 class="text-2xl font-bold text-k24-textPrimary">Halo, {{ user.name }}!</h1>
+            <p class="text-sm text-k24-textSecondary mt-1">Selamat datang di Dasbor Pasien Anda.</p>
+        </div>
+        <a href="/katalog" class="bg-k24-primary text-white px-4 py-2 rounded-md text-sm font-bold hover:bg-green-700 transition-colors shadow-sm flex items-center gap-2">
+            <i data-lucide="plus" class="w-4 h-4"></i> Buat Pesanan Baru
+        </a>
+    </div>
+
+    <!-- Stats and Status -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="bg-white p-6 rounded-xl border border-k24-border shadow-sm flex items-center gap-4">
+            <div class="p-4 bg-blue-100 text-blue-700 rounded-full">
+                <i data-lucide="package" class="w-8 h-8"></i>
+            </div>
+            <div>
+                <p class="text-sm font-medium text-k24-textSecondary">Pesanan Diproses</p>
+                <p class="text-2xl font-bold text-k24-textPrimary">1</p>
+            </div>
+        </div>
+        <div class="bg-white p-6 rounded-xl border border-k24-border shadow-sm flex items-center gap-4">
+            <div class="p-4 bg-green-100 text-green-700 rounded-full">
+                <i data-lucide="check-circle" class="w-8 h-8"></i>
+            </div>
+            <div>
+                <p class="text-sm font-medium text-k24-textSecondary">Selesai / Riwayat</p>
+                <p class="text-2xl font-bold text-k24-textPrimary">5</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Order History -->
+    <div class="bg-white rounded-xl shadow-sm border border-k24-border overflow-hidden">
+        <div class="p-4 border-b border-k24-border bg-gray-50">
+            <h2 class="text-lg font-bold text-k24-textPrimary">Riwayat Pesanan Terakhir</h2>
+        </div>
+        
+        <div class="p-6 text-center text-k24-textSecondary">
+            <i data-lucide="clock" class="w-12 h-12 mx-auto mb-2 text-gray-300"></i>
+            <p>Belum ada riwayat pesanan yang dapat ditampilkan.</p>
+            <a href="/katalog" class="inline-block mt-4 text-k24-primary font-medium hover:underline">Mulai Berbelanja</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
