@@ -38,8 +38,12 @@ def get_dashboard_stats(
 
 api_router.include_router(dashboard_router, prefix="/dashboard", tags=["dashboard"])
 
+from app.api import ws
+api_router.include_router(ws.router, prefix="/ws", tags=["websocket"])
+
 import os
-from fastapi import UploadFile, File
+from fastapi import UploadFile, File, BackgroundTasks, Form
+from app.services.background import process_csv_import_sync, simulate_send_email
 upload_router = APIRouter()
 
 @upload_router.post("/")
@@ -55,5 +59,37 @@ def upload_file(
         buffer.write(file.file.read())
         
     return {"filename": file.filename, "url": f"/static/uploads/{file.filename}"}
+
+@upload_router.post("/import-csv")
+async def import_csv_medicines(
+    background_tasks: BackgroundTasks,
+    file: UploadFile = File(...),
+    category_id: str = Form(...),
+    current_admin: User = Depends(deps.get_current_admin)
+):
+    content = await file.read()
+    decoded_content = content.decode("utf-8")
+    
+    async def run_import_and_notify():
+        # Run sync function in a thread to not block event loop
+        import asyncio
+        loop = asyncio.get_event_loop()
+        await loop.run_in_executor(None, process_csv_import_sync, decoded_content, category_id)
+        await ws.manager.broadcast(f"Selesai! Import data obat dari file {file.filename} telah berhasil.")
+    
+    background_tasks.add_task(run_import_and_notify)
+    
+    # Also simulate an email being sent to admin
+    background_tasks.add_task(
+        simulate_send_email, 
+        email_to=current_admin.email, 
+        subject="Import CSV Dimulai", 
+        message=f"Sistem sedang memproses import data obat dari file {file.filename}. Anda akan menerima notifikasi jika sudah selesai."
+    )
+    
+    # Broadcast to websocket that import started
+    await ws.manager.broadcast(f"Memulai proses import untuk {file.filename}...")
+    
+    return {"message": "Import CSV diproses di latar belakang. Silakan cek notifikasi Anda nanti."}
 
 api_router.include_router(upload_router, prefix="/upload", tags=["upload"])

@@ -68,6 +68,23 @@
                     5 Pesanan gagal diverifikasi pembayarannya
                 </p>
             </div>
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-k24-border">
+                <h3 class="text-lg font-bold text-k24-textPrimary mb-4">Aksi Cepat</h3>
+                <div class="space-y-3">
+                    <button class="w-full text-left px-4 py-3 border border-k24-border rounded-lg hover:bg-gray-50 flex items-center justify-between text-sm font-medium transition-colors">
+                        <span class="flex items-center text-k24-textPrimary"><i data-lucide="plus" class="w-4 h-4 mr-2 text-k24-primary"></i> Tambah Obat Baru</span>
+                        <i data-lucide="chevron-right" class="w-4 h-4 text-gray-400"></i>
+                    </button>
+                    <button class="w-full text-left px-4 py-3 border border-k24-border rounded-lg hover:bg-gray-50 flex items-center justify-between text-sm font-medium transition-colors">
+                        <span class="flex items-center text-k24-textPrimary"><i data-lucide="file-text" class="w-4 h-4 mr-2 text-k24-primary"></i> Laporan Penjualan</span>
+                        <i data-lucide="chevron-right" class="w-4 h-4 text-gray-400"></i>
+                    </button>
+                    <button onclick="testImportCSV()" class="w-full text-left px-4 py-3 border border-k24-accent rounded-lg hover:bg-red-50 flex items-center justify-between text-sm font-bold transition-colors text-k24-accent">
+                        <span class="flex items-center"><i data-lucide="upload-cloud" class="w-4 h-4 mr-2"></i> Demo CSV Import (Background Task)</span>
+                        <i data-lucide="chevron-right" class="w-4 h-4"></i>
+                    </button>
+                </div>
+            </div>
             <div class="bg-green-50 border-l-4 border-k24-success p-4 rounded-r-md">
                 <p class="text-sm text-green-800 font-medium flex items-start">
                     <i data-lucide="check-circle" class="w-4 h-4 mr-2 mt-0.5 flex-shrink-0"></i>
@@ -100,4 +117,74 @@
         </div>
     </div>
 </div>
+
+<!-- Toast Notification Container -->
+<div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-3"></div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Toast UI builder
+    function showToast(message, type = "success") {
+        const container = document.getElementById('toast-container');
+        const toast = document.createElement('div');
+        toast.className = `p-4 rounded-md shadow-lg text-sm text-white transform transition-all duration-300 translate-y-10 opacity-0 ${type === 'success' ? 'bg-green-600' : 'bg-k24-accent'}`;
+        toast.innerHTML = `
+            <div class="flex items-center">
+                <i data-lucide="bell" class="w-5 h-5 mr-2"></i>
+                <span>${message}</span>
+            </div>
+        `;
+        container.appendChild(toast);
+        
+        // Trigger reflow
+        void toast.offsetWidth;
+        // Slide up and fade in
+        toast.classList.remove('translate-y-10', 'opacity-0');
+        
+        // Remove after 5 seconds
+        setTimeout(() => {
+            toast.classList.add('opacity-0');
+            setTimeout(() => toast.remove(), 300);
+        }, 5000);
+    }
+
+    // Initialize WebSocket
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const wsUrl = `${protocol}//${window.location.host}/api/v1/ws/notifications`;
+    const socket = new WebSocket(wsUrl);
+
+    socket.onopen = function(e) {
+        console.log("WebSocket connected to notifications");
+    };
+
+    socket.onmessage = function(event) {
+        const message = event.data;
+        showToast(message, "success");
+    };
+
+    socket.onclose = function(event) {
+        console.log("WebSocket connection closed");
+    };
+    
+    // Simulate import form submit
+    function testImportCSV() {
+        const formData = new FormData();
+        // Create a dummy CSV file
+        const csvContent = "name,slug,price,description\nObatA,obat-a,10000,Deskripsi A\nObatB,obat-b,20000,Deskripsi B";
+        const file = new File([csvContent], "dummy.csv", { type: "text/csv" });
+        formData.append("file", file);
+        formData.append("category_id", "some-dummy-category");
+        
+        fetch('/api/v1/upload/import-csv', {
+            method: 'POST',
+            body: formData
+        }).then(res => res.json()).then(data => {
+            showToast(data.message, "success");
+        }).catch(err => {
+            showToast("Gagal memulai import", "error");
+        });
+    }
+</script>
 {% endblock %}
