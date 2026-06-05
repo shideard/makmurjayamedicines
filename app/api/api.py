@@ -37,3 +37,23 @@ def get_dashboard_stats(
     }
 
 api_router.include_router(dashboard_router, prefix="/dashboard", tags=["dashboard"])
+
+import os
+from fastapi import UploadFile, File
+upload_router = APIRouter()
+
+@upload_router.post("/")
+def upload_file(
+    file: UploadFile = File(...),
+    current_user: User = Depends(deps.require_current_user)
+):
+    upload_dir = "app/static/uploads"
+    os.makedirs(upload_dir, exist_ok=True)
+    
+    file_path = os.path.join(upload_dir, file.filename)
+    with open(file_path, "wb") as buffer:
+        buffer.write(file.file.read())
+        
+    return {"filename": file.filename, "url": f"/static/uploads/{file.filename}"}
+
+api_router.include_router(upload_router, prefix="/upload", tags=["upload"])

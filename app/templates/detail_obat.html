@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+
+{% block title %}{{ medicine.name }} - Klinik Makmur Jaya{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+    <a href="/katalog" class="text-k24-textSecondary hover:text-k24-primary flex items-center transition-colors">
+        <i data-lucide="arrow-left" class="w-4 h-4 mr-1"></i> Kembali ke Katalog
+    </a>
+</div>
+
+<div class="bg-white rounded-xl shadow-sm border border-k24-border overflow-hidden" x-data="cartStore()">
+    <div class="flex flex-col md:flex-row">
+        <!-- Image Section -->
+        <div class="md:w-1/3 bg-gray-50 flex items-center justify-center p-12 border-b md:border-b-0 md:border-r border-k24-border">
+            {% if medicine.image_url %}
+            <img src="{{ medicine.image_url }}" alt="{{ medicine.name }}" class="max-w-full h-auto object-contain">
+            {% else %}
+            <i data-lucide="pill" class="w-32 h-32 text-gray-300"></i>
+            {% endif %}
+        </div>
+        
+        <!-- Details Section -->
+        <div class="md:w-2/3 p-8 flex flex-col justify-between">
+            <div>
+                <div class="text-sm font-bold text-k24-primary uppercase tracking-wider mb-2">{{ medicine.category.name if medicine.category else 'Umum' }}</div>
+                <h1 class="text-3xl font-extrabold text-k24-textPrimary mb-4">{{ medicine.name }}</h1>
+                
+                <div class="flex items-center mb-6">
+                    <span class="text-3xl font-black text-k24-primary">Rp {{ "{:,.0f}".format(medicine.price).replace(',', '.') }}</span>
+                    {% if medicine.stock and medicine.stock > 0 %}
+                    <span class="ml-4 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 border border-green-200">
+                        Stok Tersedia: {{ medicine.stock }}
+                    </span>
+                    {% else %}
+                    <span class="ml-4 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 border border-red-200">
+                        Stok Habis
+                    </span>
+                    {% endif %}
+                </div>
+                
+                <div class="prose prose-sm text-k24-textSecondary mb-8 max-w-none">
+                    <h3 class="text-lg font-bold text-k24-textPrimary mb-2">Deskripsi Produk</h3>
+                    <p>{{ medicine.description or 'Tidak ada deskripsi tersedia untuk produk ini.' }}</p>
+                </div>
+            </div>
+            
+            <div class="flex flex-col sm:flex-row gap-4 pt-6 border-t border-k24-border">
+                <button 
+                    @click="addToCart('{{ medicine.id }}', '{{ medicine.name }}', {{ medicine.price }})"
+                    {% if not medicine.stock or medicine.stock == 0 %}disabled{% endif %}
+                    class="flex-1 bg-k24-primary hover:bg-green-700 text-white font-bold py-3 px-6 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center shadow-sm"
+                >
+                    <i data-lucide="shopping-cart" class="w-5 h-5 mr-2"></i> Tambah ke Keranjang
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('alpine:init', () => {
+        Alpine.data('cartStore', () => ({
+            cart: JSON.parse(localStorage.getItem('k24_cart') || '[]'),
+            addToCart(id, name, price) {
+                const existing = this.cart.find(item => item.id === id);
+                if (existing) existing.quantity += 1;
+                else this.cart.push({ id, name, price, quantity: 1 });
+                localStorage.setItem('k24_cart', JSON.stringify(this.cart));
+                alert(`${name} ditambahkan ke keranjang!`);
+            }
+        }))
+    });
+</script>
+{% endblock %}

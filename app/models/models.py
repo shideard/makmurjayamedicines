@@ -62,6 +62,7 @@ class Medicine(Base):
     slug = Column(String, unique=True, nullable=False)
     price = Column(Float, nullable=False)
     description = Column(Text, nullable=True)
+    image_url = Column(String, nullable=True) # New field for image upload
     category_id = Column(String, ForeignKey("categories.id"), nullable=False)
     supplier_id = Column(String, ForeignKey("suppliers.id"), nullable=True)
     
@@ -114,6 +115,7 @@ class Payment(Base):
     amount = Column(Float, nullable=False)
     method = Column(String, nullable=False) # BANK_TRANSFER, E_WALLET, CASH
     status = Column(String, default="PENDING") # PENDING, VERIFIED, FAILED
+    receipt_url = Column(String, nullable=True) # New field for payment proof upload
     verified_by_id = Column(String, ForeignKey("users.id"), nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     
@@ -132,3 +134,17 @@ class AuditLog(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
     
     user = relationship("User")
+
+class Prescription(Base):
+    __tablename__ = "prescriptions"
+    id = Column(String, primary_key=True, default=generate_uuid)
+    customer_id = Column(String, ForeignKey("customers.id"), nullable=False)
+    doctor_name = Column(String, nullable=False)
+    file_url = Column(String, nullable=False) # Uploaded prescription image/pdf
+    status = Column(String, default="PENDING") # PENDING, APPROVED, REJECTED
+    notes = Column(Text, nullable=True)
+    verified_by_id = Column(String, ForeignKey("users.id"), nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    
+    customer = relationship("Customer")
+    verifier = relationship("User")

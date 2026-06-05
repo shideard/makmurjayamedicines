@@ -35,6 +35,25 @@ def read_catalog(request: Request, db: Session = Depends(get_db), current_user =
         }
     )
 
+@router.get("/obat/{slug}", response_class=HTMLResponse)
+def read_medicine_detail(slug: str, request: Request, db: Session = Depends(get_db), current_user = Depends(deps.get_current_user)):
+    medicine = medicine_repo.get_by_slug(db, slug=slug)
+    if not medicine:
+        return HTMLResponse(content="Obat tidak ditemukan", status_code=404)
+        
+    # Mock stock for template
+    medicine_dict = medicine.__dict__
+    medicine_dict["stock"] = 15
+    
+    return templates.TemplateResponse(
+        request=request, 
+        name="detail_obat.html", 
+        context={
+            "user": current_user,
+            "medicine": medicine_dict
+        }
+    )
+
 @router.get("/keranjang", response_class=HTMLResponse)
 def read_cart(request: Request, current_user = Depends(deps.get_current_user)):
     return templates.TemplateResponse(
