@@ -62,6 +62,9 @@ class Medicine(Base):
     slug = Column(String, unique=True, nullable=False)
     price = Column(Float, nullable=False)
     description = Column(Text, nullable=True)
+    composition = Column(Text, nullable=True) # BNSP requirement: komposisi
+    dosage = Column(Text, nullable=True) # BNSP requirement: dosis
+    side_effects = Column(Text, nullable=True) # BNSP requirement: efek samping
     image_url = Column(String, nullable=True) # New field for image upload
     category_id = Column(String, ForeignKey("categories.id"), nullable=False)
     supplier_id = Column(String, ForeignKey("suppliers.id"), nullable=True)

@@ -39,9 +39,32 @@
                     {% endif %}
                 </div>
                 
-                <div class="prose prose-sm text-k24-textSecondary mb-8 max-w-none">
+                <div class="prose prose-sm text-k24-textSecondary mb-6 max-w-none">
                     <h3 class="text-lg font-bold text-k24-textPrimary mb-2">Deskripsi Produk</h3>
                     <p>{{ medicine.description or 'Tidak ada deskripsi tersedia untuk produk ini.' }}</p>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+                        {% if medicine.composition %}
+                        <div class="bg-gray-50 p-3 rounded-md border border-k24-border">
+                            <h4 class="font-bold text-k24-primary text-xs uppercase mb-1">Komposisi</h4>
+                            <p class="text-sm">{{ medicine.composition }}</p>
+                        </div>
+                        {% endif %}
+                        
+                        {% if medicine.dosage %}
+                        <div class="bg-gray-50 p-3 rounded-md border border-k24-border">
+                            <h4 class="font-bold text-k24-primary text-xs uppercase mb-1">Dosis Aturan Pakai</h4>
+                            <p class="text-sm">{{ medicine.dosage }}</p>
+                        </div>
+                        {% endif %}
+                        
+                        {% if medicine.side_effects %}
+                        <div class="bg-red-50 p-3 rounded-md border border-red-100 col-span-1 md:col-span-2">
+                            <h4 class="font-bold text-red-700 text-xs uppercase mb-1">Efek Samping & Peringatan</h4>
+                            <p class="text-sm text-red-900">{{ medicine.side_effects }}</p>
+                        </div>
+                        {% endif %}
+                    </div>
                 </div>
             </div>
             
