@@ -40,17 +40,13 @@
                             </div>
                             <div class="flex items-center space-x-4">
                                 <div class="flex items-center border border-k24-border rounded-md overflow-hidden">
-                                    <button @click="updateQuantity(item.id, item.quantity - 1)" class="p-2 bg-gray-50 text-gray-600 hover:bg-gray-100 transition-colors">
-                                        <i data-lucide="minus" class="w-4 h-4"></i>
-                                    </button>
-                                    <span class="px-4 font-medium text-k24-textPrimary" x-text="item.quantity"></span>
-                                    <button @click="updateQuantity(item.id, item.quantity + 1)" class="p-2 bg-gray-50 text-gray-600 hover:bg-gray-100 transition-colors">
-                                        <i data-lucide="plus" class="w-4 h-4"></i>
-                                    </button>
+                                    <button @click="updateQuantity(item.id, item.quantity - 1)" class="p-2 hover:bg-gray-100">-</button>
+                                    <span class="px-4 font-medium" x-text="item.quantity"></span>
+                                    <button @click="updateQuantity(item.id, item.quantity + 1)" class="p-2 hover:bg-gray-100">+</button>
                                 </div>
-                                <button @click="removeItem(item.id)" class="text-k24-danger hover:text-red-800 p-2 transition-colors" title="Hapus">
-                                    <i data-lucide="trash-2" class="w-5 h-5"></i>
-                                </button>
+                                <button @click="removeItem(item.id)" class="text-red-600 hover:text-red-800 p-2">Hapus</button>
+                                
+                                <span class="font-extrabold text-xl text-green-700">Rp <span x-text="formatRupiah(total)"></span></span>
                             </div>
                         </li>
                     </template>
@@ -97,39 +93,24 @@
     document.addEventListener('alpine:init', () => {
         Alpine.data('cartPage', () => ({
             cart: JSON.parse(localStorage.getItem('k24_cart') || '[]'),
-            
-            get subtotal() {
-                return this.cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-            },
-            get tax() {
-                return this.subtotal * 0.11;
-            },
-            get total() {
-                return this.subtotal + this.tax;
-            },
-            
+            get subtotal() { return this.cart.reduce((sum, item) => sum + (item.price * item.quantity), 0); },
+            get tax() { return this.subtotal * 0.11; },
+            get total() { return this.subtotal + this.tax; },
             updateQuantity(id, qty) {
                 if (qty < 1) return;
                 const item = this.cart.find(i => i.id === id);
                 if (item) item.quantity = qty;
                 this.saveCart();
             },
-            
             removeItem(id) {
-                if(confirm('Hapus obat dari keranjang?')) {
-                    this.cart = this.cart.filter(i => i.id !== id);
-                    this.saveCart();
-                }
+                this.cart = this.cart.filter(i => i.id !== id);
+                this.saveCart();
             },
-            
             saveCart() {
                 localStorage.setItem('k24_cart', JSON.stringify(this.cart));
                 window.dispatchEvent(new CustomEvent('cart-updated', { detail: this.cart }));
             },
-            
-            formatRupiah(num) {
-                return num.toLocaleString('id-ID', { maximumFractionDigits: 0 });
-            }
+            formatRupiah(num) { return num.toLocaleString('id-ID', { maximumFractionDigits: 0 }); }
         }))
     });
 </script>
