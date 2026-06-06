@@ -1,0 +1,202 @@
+{% extends "base.html" %}
+
+{% block title %}Error Log Dashboard - Klinik Makmur Jaya{% endblock %}
+
+{% block content %}
+<div class="mb-8 flex flex-col md:flex-row justify-between items-start md:items-center">
+    <div>
+        <h1 class="text-2xl font-bold text-k24-textPrimary">Dashboard Error Log</h1>
+        <p class="text-k24-textSecondary mt-1">Pantau semua kejadian sistem berdasarkan tingkat keparahan.</p>
+    </div>
+    <div class="mt-4 md:mt-0 flex gap-2">
+        <a href="/admin/dashboard" class="text-sm text-gray-600 hover:text-k24-primary font-medium flex items-center gap-1 px-3 py-2 border border-k24-border rounded-md bg-white">
+            <i data-lucide="arrow-left" class="w-4 h-4"></i> Kembali
+        </a>
+    </div>
+</div>
+
+<!-- Severity Summary Cards -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+    <div class="bg-white p-6 rounded-xl shadow-sm border border-red-200 flex items-center gap-4">
+        <div class="p-3 rounded-full bg-red-100">
+            <i data-lucide="alert-octagon" class="w-6 h-6 text-red-600"></i>
+        </div>
+        <div>
+            <p class="text-sm font-medium text-gray-500 uppercase tracking-wide">Critical</p>
+            <p class="text-3xl font-black text-red-600">{{ critical_count }}</p>
+            <p class="text-xs text-gray-400 mt-1">Perlu tindakan segera</p>
+        </div>
+    </div>
+    <div class="bg-white p-6 rounded-xl shadow-sm border border-yellow-200 flex items-center gap-4">
+        <div class="p-3 rounded-full bg-yellow-100">
+            <i data-lucide="alert-triangle" class="w-6 h-6 text-yellow-600"></i>
+        </div>
+        <div>
+            <p class="text-sm font-medium text-gray-500 uppercase tracking-wide">Warning</p>
+            <p class="text-3xl font-black text-yellow-600">{{ warning_count }}</p>
+            <p class="text-xs text-gray-400 mt-1">Perlu dipantau</p>
+        </div>
+    </div>
+    <div class="bg-white p-6 rounded-xl shadow-sm border border-blue-200 flex items-center gap-4">
+        <div class="p-3 rounded-full bg-blue-100">
+            <i data-lucide="info" class="w-6 h-6 text-blue-600"></i>
+        </div>
+        <div>
+            <p class="text-sm font-medium text-gray-500 uppercase tracking-wide">Info</p>
+            <p class="text-3xl font-black text-blue-600">{{ info_count }}</p>
+            <p class="text-xs text-gray-400 mt-1">Informasi umum</p>
+        </div>
+    </div>
+</div>
+
+<!-- Filter & Table -->
+<div class="bg-white rounded-xl shadow-sm border border-k24-border overflow-hidden">
+    <div class="p-5 border-b border-k24-border bg-gray-50 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <h2 class="text-lg font-bold text-k24-textPrimary">Log Events</h2>
+        <form method="GET" action="/admin/error-log" class="flex gap-2 flex-wrap">
+            <select name="severity" onchange="this.form.submit()" class="text-sm border border-k24-border rounded-md px-3 py-1.5 bg-white focus:ring-1 focus:ring-k24-primary outline-none">
+                <option value="" {% if not selected_severity %}selected{% endif %}>Semua Severity</option>
+                <option value="critical" {% if selected_severity == 'critical' %}selected{% endif %}>🔴 Critical</option>
+                <option value="warning" {% if selected_severity == 'warning' %}selected{% endif %}>🟡 Warning</option>
+                <option value="info" {% if selected_severity == 'info' %}selected{% endif %}>🔵 Info</option>
+            </select>
+            <select name="limit" onchange="this.form.submit()" class="text-sm border border-k24-border rounded-md px-3 py-1.5 bg-white focus:ring-1 focus:ring-k24-primary outline-none">
+                <option value="50" {% if limit == 50 %}selected{% endif %}>50 terakhir</option>
+                <option value="100" {% if limit == 100 %}selected{% endif %}>100 terakhir</option>
+                <option value="200" {% if limit == 200 %}selected{% endif %}>200 terakhir</option>
+            </select>
+        </form>
+    </div>
+
+    {% if logs %}
+    <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+            <thead>
+                <tr class="bg-gray-50 border-b border-k24-border text-xs font-bold text-gray-500 uppercase tracking-wider">
+                    <th class="py-3 px-4 text-left w-28">Severity</th>
+                    <th class="py-3 px-4 text-left">Aksi / Event</th>
+                    <th class="py-3 px-4 text-left">Detail</th>
+                    <th class="py-3 px-4 text-left">Pengguna</th>
+                    <th class="py-3 px-4 text-left w-44">Waktu</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-k24-border">
+                {% for log in logs %}
+                {% set sev = log.severity %}
+                <tr class="hover:bg-gray-50 transition-colors {% if sev == 'critical' %}bg-red-50/40{% elif sev == 'warning' %}bg-yellow-50/30{% endif %}">
+                    <td class="py-3 px-4">
+                        {% if sev == 'critical' %}
+                        <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-red-100 text-red-700 border border-red-200">
+                            <i data-lucide="alert-octagon" class="w-3 h-3"></i> CRITICAL
+                        </span>
+                        {% elif sev == 'warning' %}
+                        <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-yellow-100 text-yellow-700 border border-yellow-200">
+                            <i data-lucide="alert-triangle" class="w-3 h-3"></i> WARNING
+                        </span>
+                        {% else %}
+                        <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-700 border border-blue-200">
+                            <i data-lucide="info" class="w-3 h-3"></i> INFO
+                        </span>
+                        {% endif %}
+                    </td>
+                    <td class="py-3 px-4">
+                        <span class="font-mono font-semibold text-gray-800 text-xs">{{ log.action }}</span>
+                        {% if log.entity %}
+                        <span class="ml-2 text-xs text-gray-500">→ {{ log.entity }}</span>
+                        {% endif %}
+                    </td>
+                    <td class="py-3 px-4 text-gray-600 max-w-xs truncate" title="{{ log.details or '-' }}">
+                        {{ log.details or '-' }}
+                    </td>
+                    <td class="py-3 px-4 text-gray-600">
+                        {% if log.user %}
+                        <div class="flex items-center gap-2">
+                            <div class="w-6 h-6 rounded-full bg-green-100 text-green-700 flex items-center justify-center text-xs font-bold">
+                                {{ log.user.name[0].upper() }}
+                            </div>
+                            <span class="text-xs">{{ log.user.name }}</span>
+                        </div>
+                        {% else %}
+                        <span class="text-gray-400 text-xs italic">Sistem</span>
+                        {% endif %}
+                    </td>
+                    <td class="py-3 px-4 text-xs text-gray-500 whitespace-nowrap">
+                        {{ log.created_at.strftime("%d %b %Y %H:%M:%S") }}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="px-5 py-3 bg-gray-50 border-t border-k24-border text-xs text-gray-500 text-right">
+        Menampilkan {{ logs | length }} log event
+    </div>
+    {% else %}
+    <div class="py-16 text-center">
+        <i data-lucide="check-circle" class="w-12 h-12 text-green-300 mx-auto mb-3"></i>
+        <h3 class="text-lg font-medium text-gray-700">Tidak Ada Log</h3>
+        <p class="text-gray-400 text-sm mt-1">Tidak ada event yang ditemukan untuk filter ini.</p>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Real-time Chart: Events per severity today -->
+<div class="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <div class="bg-white rounded-xl shadow-sm border border-k24-border p-6">
+        <h3 class="text-lg font-bold text-k24-textPrimary mb-4">Distribusi Severity</h3>
+        <div class="h-64">
+            <canvas id="severityChart"></canvas>
+        </div>
+    </div>
+    <div class="bg-white rounded-xl shadow-sm border border-k24-border p-6">
+        <h3 class="text-lg font-bold text-k24-textPrimary mb-4">Top 5 Aksi Terbanyak</h3>
+        <div class="space-y-3">
+            {% for action_stat in top_actions %}
+            <div class="flex items-center justify-between">
+                <span class="font-mono text-sm text-gray-700">{{ action_stat.action }}</span>
+                <div class="flex items-center gap-3">
+                    <div class="w-32 bg-gray-100 rounded-full h-2">
+                        <div class="bg-k24-primary h-2 rounded-full" style="width: {{ action_stat.pct }}%"></div>
+                    </div>
+                    <span class="text-sm font-bold text-gray-600 w-8 text-right">{{ action_stat.count }}</span>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const ctx = document.getElementById('severityChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Critical', 'Warning', 'Info'],
+            datasets: [{
+                data: [{{ critical_count }}, {{ warning_count }}, {{ info_count }}],
+                backgroundColor: ['#ef4444', '#f59e0b', '#3b82f6'],
+                borderWidth: 2,
+                borderColor: '#ffffff',
+                hoverOffset: 6
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'right',
+                    labels: { padding: 16, font: { size: 12 } }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: ctx => ` ${ctx.label}: ${ctx.raw} event`
+                    }
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}

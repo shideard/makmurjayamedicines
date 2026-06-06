@@ -1,0 +1,152 @@
+{% extends "base.html" %}
+
+{% block title %}Tambah Obat - Klinik Makmur Jaya{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto bg-white rounded-xl shadow-sm border border-k24-border overflow-hidden mt-8">
+    <div class="p-6 border-b border-k24-border flex items-center justify-between">
+        <div>
+            <h1 class="text-2xl font-bold text-k24-textPrimary">Tambah Data Obat Baru</h1>
+            <p class="text-sm text-k24-textSecondary mt-1">Isi formulir berikut untuk mendaftarkan obat baru ke dalam Master Data.</p>
+        </div>
+        <a href="/admin/dashboard" class="text-gray-500 hover:text-gray-700 flex items-center gap-1 text-sm font-medium">
+            <i data-lucide="arrow-left" class="w-4 h-4"></i> Kembali
+        </a>
+    </div>
+    
+    <div class="p-6">
+        <form action="/admin/tambah-obat" method="POST" enctype="multipart/form-data" class="space-y-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Nama Obat -->
+                <div class="md:col-span-2">
+                    <label for="name" class="block text-sm font-medium text-k24-textPrimary mb-2">Nama Obat Lengkap</label>
+                    <input type="text" id="name" name="name" required
+                        class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-k24-primary focus:border-k24-primary"
+                        placeholder="Contoh: Paracetamol 500mg Strip">
+                </div>
+                
+                <!-- Kategori -->
+                <div>
+                    <div class="flex justify-between items-center mb-2">
+                        <label for="category_id" class="block text-sm font-medium text-k24-textPrimary">Kategori Obat</label>
+                        <a href="/admin/tambah-kategori" class="text-xs font-bold text-k24-primary hover:underline flex items-center gap-1">
+                            <i data-lucide="plus" class="w-3 h-3"></i> Tambah Kategori
+                        </a>
+                    </div>
+                    <select id="category_id" name="category_id" required
+                        class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-k24-primary focus:border-k24-primary bg-white">
+                        <option value="" disabled selected>Pilih Kategori...</option>
+                        {% for cat in categories %}
+                            <option value="{{ cat.id }}">{{ cat.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Harga -->
+                <div>
+                    <label for="price" class="block text-sm font-medium text-k24-textPrimary mb-2">Harga per Satuan (Rp)</label>
+                    <div class="relative">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <span class="text-gray-500 sm:text-sm">Rp</span>
+                        </div>
+                        <input type="number" id="price" name="price" required min="0" step="0.01"
+                            class="w-full pl-10 px-4 py-2 border border-gray-300 rounded-md focus:ring-k24-primary focus:border-k24-primary"
+                            placeholder="0">
+                    </div>
+                </div>
+
+                <!-- Stok Awal -->
+                <div>
+                    <label for="stock" class="block text-sm font-medium text-k24-textPrimary mb-2">Stok Awal di Gudang</label>
+                    <input type="number" id="stock" name="stock" required min="0"
+                        class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-k24-primary focus:border-k24-primary"
+                        placeholder="Contoh: 100">
+                    <p class="text-xs text-gray-500 mt-1">Sistem otomatis meregistrasi ini sebagai BATCH baru.</p>
+                </div>
+
+                <!-- Tanggal Kadaluarsa -->
+                <div>
+                    <label for="expiry_date" class="block text-sm font-medium text-k24-textPrimary mb-2">Tanggal Kadaluarsa Batch</label>
+                    <input type="date" id="expiry_date" name="expiry_date"
+                        class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-k24-primary focus:border-k24-primary">
+                    <p class="text-xs text-gray-500 mt-1">Kosongkan untuk default 2 tahun dari sekarang.</p>
+                </div>
+
+                <!-- Foto Produk -->
+                <div>
+                    <label for="file" class="block text-sm font-medium text-k24-textPrimary mb-2">Foto Produk</label>
+                    <input type="file" id="file" name="file" accept="image/jpeg, image/png, image/webp" onchange="previewImage(event)"
+                        class="w-full px-4 py-1.5 border border-gray-300 rounded-md focus:ring-k24-primary focus:border-k24-primary file:mr-4 file:py-1 file:px-3 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-green-50 file:text-k24-primary hover:file:bg-green-100 cursor-pointer">
+                    
+                    <!-- Preview Container -->
+                    <div id="image-preview-container" class="mt-4 hidden">
+                        <p class="text-xs text-gray-500 mb-2 font-medium">Pratinjau Foto:</p>
+                        <div class="border border-gray-200 rounded-lg overflow-hidden bg-gray-50 flex items-center justify-center p-2" style="max-width: 200px; height: 200px;">
+                            <img id="image-preview" src="#" alt="Pratinjau" class="max-w-full max-h-full object-contain">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Deskripsi -->
+                <div class="md:col-span-2">
+                    <label for="description" class="block text-sm font-medium text-k24-textPrimary mb-2">Deskripsi Produk</label>
+                    <textarea id="description" name="description" rows="2"
+                        class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-k24-primary focus:border-k24-primary"
+                        placeholder="Deskripsi singkat obat..."></textarea>
+                </div>
+
+                <!-- Komposisi, Dosis, Efek Samping -->
+                <div>
+                    <label class="block text-sm font-medium text-k24-textPrimary mb-2">Komposisi</label>
+                    <textarea name="composition" rows="3"
+                        class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-k24-primary focus:border-k24-primary resize-none text-sm"
+                        placeholder="Kandungan bahan aktif..."></textarea>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-k24-textPrimary mb-2">Dosis / Aturan Pakai</label>
+                    <textarea name="dosage" rows="3"
+                        class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-k24-primary focus:border-k24-primary resize-none text-sm"
+                        placeholder="Contoh: 3x sehari 1 tablet sesudah makan"></textarea>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-k24-textPrimary mb-2">Efek Samping</label>
+                    <textarea name="side_effects" rows="3"
+                        class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-k24-primary focus:border-k24-primary resize-none text-sm"
+                        placeholder="Efek samping yang mungkin terjadi..."></textarea>
+                </div>
+            </div>
+            
+            <div class="flex justify-end gap-4 pt-6 border-t border-gray-100">
+                <a href="/admin/dashboard" class="px-6 py-2.5 text-sm font-bold text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors">Batal</a>
+                <button type="submit" class="px-6 py-2.5 text-sm font-bold text-white bg-k24-primary rounded-md hover:bg-green-700 transition-colors shadow-sm flex items-center gap-2">
+                    <i data-lucide="save" class="w-4 h-4"></i> Simpan Master Obat
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function previewImage(event) {
+        const input = event.target;
+        const container = document.getElementById('image-preview-container');
+        const preview = document.getElementById('image-preview');
+
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                preview.src = e.target.result;
+                container.classList.remove('hidden');
+            }
+            
+            reader.readAsDataURL(input.files[0]);
+        } else {
+            preview.src = '#';
+            container.classList.add('hidden');
+        }
+    }
+</script>
+{% endblock %}

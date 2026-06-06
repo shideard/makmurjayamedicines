@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% block title %}Kelola Obat - Admin Makmur Jaya{% endblock %}
+{% block content %}
+<div class="space-y-6">
+    <div class="flex justify-between items-center border-b border-k24-border pb-4">
+        <div>
+            <h1 class="text-2xl font-bold text-k24-textPrimary">Manajemen Obat</h1>
+            <p class="text-sm text-k24-textSecondary mt-1">Kelola seluruh data obat dalam sistem.</p>
+        </div>
+        <a href="/admin/tambah-obat" class="bg-k24-primary text-white px-4 py-2 rounded-md text-sm font-bold hover:bg-green-700 flex items-center gap-2 transition-colors shadow-sm">
+            <i data-lucide="plus" class="w-4 h-4"></i> Tambah Obat Baru
+        </a>
+    </div>
+
+    <div class="bg-white rounded-xl shadow-sm border border-k24-border overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+                <thead class="bg-gray-50 border-b border-k24-border">
+                    <tr>
+                        <th class="py-3 px-4 text-sm font-semibold text-k24-textSecondary">Nama Obat</th>
+                        <th class="py-3 px-4 text-sm font-semibold text-k24-textSecondary">Kategori</th>
+                        <th class="py-3 px-4 text-sm font-semibold text-k24-textSecondary">Harga</th>
+                        <th class="py-3 px-4 text-sm font-semibold text-k24-textSecondary">Stok Aktif</th>
+                        <th class="py-3 px-4 text-sm font-semibold text-k24-textSecondary text-center">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100">
+                    {% for item in medicines %}
+                    <tr class="hover:bg-gray-50 transition-colors">
+                        <td class="py-3 px-4">
+                            <div class="flex items-center gap-3">
+                                {% if item.med.image_url %}
+                                <img src="{{ item.med.image_url }}" class="w-10 h-10 rounded object-cover border border-gray-200" alt="{{ item.med.name }}">
+                                {% else %}
+                                <div class="w-10 h-10 rounded bg-gray-100 flex items-center justify-center border border-gray-200">
+                                    <i data-lucide="pill" class="w-5 h-5 text-gray-400"></i>
+                                </div>
+                                {% endif %}
+                                <div>
+                                    <p class="font-medium text-k24-textPrimary">{{ item.med.name }}</p>
+                                    <p class="text-xs text-k24-textSecondary">{{ item.med.slug }}</p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="py-3 px-4 text-k24-textSecondary text-sm">{{ item.med.category.name if item.med.category else '-' }}</td>
+                        <td class="py-3 px-4 font-medium text-k24-primary">Rp {{ "{:,.0f}".format(item.med.price).replace(",", ".") }}</td>
+                        <td class="py-3 px-4">
+                            {% if item.stock < 10 %}
+                            <span class="px-2 py-1 bg-red-100 text-red-700 rounded-full text-xs font-bold">{{ item.stock }} — Menipis!</span>
+                            {% elif item.stock == 0 %}
+                            <span class="px-2 py-1 bg-gray-100 text-gray-600 rounded-full text-xs font-bold">Habis</span>
+                            {% else %}
+                            <span class="px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs font-bold">{{ item.stock }}</span>
+                            {% endif %}
+                        </td>
+                        <td class="py-3 px-4 text-center">
+                            <div class="flex items-center justify-center gap-2">
+                                <a href="/obat/{{ item.med.slug }}" target="_blank" class="text-gray-500 hover:text-k24-primary p-1 rounded transition-colors" title="Lihat Detail">
+                                    <i data-lucide="eye" class="w-4 h-4"></i>
+                                </a>
+                                <a href="/admin/edit-obat/{{ item.med.id }}" class="text-blue-600 hover:text-blue-800 p-1 rounded transition-colors" title="Edit">
+                                    <i data-lucide="pencil" class="w-4 h-4"></i>
+                                </a>
+                                <form action="/admin/hapus-obat/{{ item.med.id }}" method="POST" class="inline" onsubmit="return confirm('Hapus obat {{ item.med.name }}? Semua stok terkait juga akan dihapus.')">
+                                    <button type="submit" class="text-red-500 hover:text-red-700 p-1 rounded transition-colors" title="Hapus">
+                                        <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="5" class="py-12 text-center text-k24-textSecondary">
+                            <i data-lucide="package-x" class="w-12 h-12 mx-auto mb-3 text-gray-300"></i>
+                            <p class="font-medium">Belum ada data obat.</p>
+                            <a href="/admin/tambah-obat" class="text-k24-primary hover:underline text-sm mt-2 inline-block">Tambah sekarang</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -3,7 +3,7 @@
 {% block title %}Katalog Obat - Klinik Makmur Jaya{% endblock %}
 
 {% block content %}
-<div class="mb-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+<form method="GET" action="/katalog" class="mb-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
     <div>
         <h1 class="text-3xl font-bold text-k24-textPrimary mb-2">Katalog Obat</h1>
         <p class="text-k24-textSecondary">Temukan obat bebas, suplemen, dan resep dokter dengan mudah.</p>
@@ -12,30 +12,49 @@
     <div class="w-full md:w-auto flex flex-col sm:flex-row gap-2">
         <div class="relative">
             <i data-lucide="search" class="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-k24-textSecondary"></i>
-            <input type="text" placeholder="Cari obat..." class="w-full pl-9 pr-4 py-2 border border-k24-border rounded-md focus:ring-2 focus:ring-k24-primary focus:border-k24-primary outline-none transition-all">
+            <input type="text" name="search" value="{{ search }}" placeholder="Cari obat..." class="w-full pl-9 pr-4 py-2 border border-k24-border rounded-md focus:ring-2 focus:ring-k24-primary focus:border-k24-primary outline-none transition-all">
         </div>
         <div class="relative">
             <i data-lucide="filter" class="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-k24-textSecondary"></i>
-            <select class="w-full pl-9 pr-8 py-2 border border-k24-border rounded-md bg-white focus:ring-2 focus:ring-k24-primary focus:border-k24-primary outline-none appearance-none transition-all cursor-pointer">
+            <select name="category" class="w-full pl-9 pr-8 py-2 border border-k24-border rounded-md bg-white focus:ring-2 focus:ring-k24-primary focus:border-k24-primary outline-none appearance-none transition-all cursor-pointer">
                 <option value="">Semua Kategori</option>
-                <!-- Categories will be injected here -->
+                {% for cat in categories %}
+                <option value="{{ cat.id }}" {% if cat.id == selected_category %}selected{% endif %}>{{ cat.name }}</option>
+                {% endfor %}
             </select>
         </div>
+        <div class="relative">
+            <i data-lucide="arrow-up-down" class="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-k24-textSecondary"></i>
+            <select name="sort" class="w-full pl-9 pr-8 py-2 border border-k24-border rounded-md bg-white focus:ring-2 focus:ring-k24-primary focus:border-k24-primary outline-none appearance-none transition-all cursor-pointer">
+                <option value="" {% if sort == '' %}selected{% endif %}>A-Z</option>
+                <option value="price_asc" {% if sort == 'price_asc' %}selected{% endif %}>Harga Terendah</option>
+                <option value="price_desc" {% if sort == 'price_desc' %}selected{% endif %}>Harga Tertinggi</option>
+            </select>
+        </div>
+        <button type="submit" class="bg-k24-primary text-white px-4 py-2 rounded-md text-sm font-bold hover:bg-green-700 transition-colors whitespace-nowrap">
+            Cari
+        </button>
     </div>
-</div>
+</form>
 
 <!-- Medicine Grid -->
 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6" x-data="cartStore()">
     {% for medicine in medicines %}
     <div class="bg-white border border-k24-border rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow flex flex-col">
-        <!-- Placeholder Image -->
-        <div class="h-48 bg-gray-100 flex items-center justify-center p-6 border-b border-k24-border">
-            <i data-lucide="pill" class="w-16 h-16 text-gray-300"></i>
-        </div>
+        <!-- Image with Link -->
+        <a href="/obat/{{ medicine.slug }}" class="block h-48 bg-gray-50 flex items-center justify-center p-6 border-b border-k24-border group relative overflow-hidden">
+            {% if medicine.image_url %}
+            <img src="{{ medicine.image_url }}" alt="{{ medicine.name }}" class="max-h-full max-w-full object-contain group-hover:scale-105 transition-transform duration-300">
+            {% else %}
+            <i data-lucide="pill" class="w-16 h-16 text-gray-300 group-hover:scale-110 transition-transform duration-300"></i>
+            {% endif %}
+        </a>
         
         <div class="p-5 flex-grow flex flex-col">
             <div class="text-xs font-bold text-k24-primary uppercase tracking-wider mb-1">{{ medicine.category.name if medicine.category else 'Umum' }}</div>
-            <h3 class="text-lg font-bold text-k24-textPrimary mb-2 leading-tight flex-grow">{{ medicine.name }}</h3>
+            <a href="/obat/{{ medicine.slug }}" class="block flex-grow">
+                <h3 class="text-lg font-bold text-k24-textPrimary hover:text-k24-primary mb-2 leading-tight">{{ medicine.name }}</h3>
+            </a>
             
             <div class="flex items-center justify-between mt-4 mb-4">
                 <div class="text-xl font-extrabold text-k24-primary">Rp {{ "{:,.0f}".format(medicine.price).replace(',', '.') }}</div>
@@ -46,14 +65,16 @@
                 {% endif %}
             </div>
             
+            {% if not user or (user.role and user.role.name in ['Pelanggan', 'Customer']) %}
             <button 
-                @click="addToCart('{{ medicine.id }}', '{{ medicine.name }}', {{ medicine.price }})"
+                @click="addToCart('{{ medicine.id }}', '{{ medicine.name }}', {{ medicine.price }}, '{{ medicine.image_url or '' }}')"
                 {% if not medicine.stock or medicine.stock == 0 %}disabled{% endif %}
-                class="w-full bg-white text-k24-primary border-2 border-k24-primary hover:bg-k24-primary hover:text-white font-bold py-2 px-4 rounded-md flex items-center justify-center transition-colors disabled:opacity-50 disabled:cursor-not-allowed group"
+                class="w-full bg-white text-k24-primary border-2 border-k24-primary hover:bg-k24-primary hover:text-white font-bold py-2 px-4 rounded-md flex items-center justify-center transition-colors disabled:opacity-50 disabled:cursor-not-allowed group mt-auto"
             >
                 <i data-lucide="shopping-cart" class="w-4 h-4 mr-2 group-hover:text-white transition-colors"></i>
                 Tambah
             </button>
+            {% endif %}
         </div>
     </div>
     {% else %}
@@ -73,12 +94,12 @@
         Alpine.data('cartStore', () => ({
             cart: JSON.parse(localStorage.getItem('k24_cart') || '[]'),
             
-            addToCart(id, name, price) {
+            addToCart(id, name, price, image) {
                 const existing = this.cart.find(item => item.id === id);
                 if (existing) {
                     existing.quantity += 1;
                 } else {
-                    this.cart.push({ id, name, price, quantity: 1 });
+                    this.cart.push({ id, name, price, quantity: 1, image: image });
                 }
                 this.saveCart();
                 // Simple visual feedback

@@ -110,13 +110,39 @@
 
             async processCheckout() {
                 this.loading = true;
-                // Dummy processing
-                setTimeout(() => {
+                
+                try {
+                    const payload = {
+                        items: this.cart.map(i => ({
+                            id: i.id,
+                            name: i.name,
+                            price: parseFloat(i.price),
+                            quantity: parseInt(i.quantity)
+                        })),
+                        payment_method: this.paymentMethod
+                    };
+                    
+                    const response = await fetch('/api/v1/checkout', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(payload)
+                    });
+                    
+                    if(response.ok) {
+                        alert('Pembayaran berhasil dikonfirmasi!');
+                        localStorage.removeItem('k24_cart');
+                        window.location.href = '/pelanggan/dashboard';
+                    } else {
+                        alert('Gagal memproses pesanan. Silakan coba lagi.');
+                        this.loading = false;
+                    }
+                } catch(e) {
+                    console.error(e);
+                    alert('Terjadi kesalahan jaringan.');
                     this.loading = false;
-                    alert('Pembayaran berhasil dikonfirmasi! (Simulasi)');
-                    localStorage.removeItem('k24_cart');
-                    window.location.href = '/katalog';
-                }, 1500);
+                }
             }
         }))
     });

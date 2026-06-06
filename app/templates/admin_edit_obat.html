@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+{% block title %}Edit Obat - Admin Makmur Jaya{% endblock %}
+{% block content %}
+<div class="mb-6">
+    <a href="/admin/obat" class="text-k24-textSecondary hover:text-k24-primary flex items-center transition-colors">
+        <i data-lucide="arrow-left" class="w-4 h-4 mr-1"></i> Kembali ke Daftar Obat
+    </a>
+</div>
+
+<div class="bg-white rounded-xl shadow-sm border border-k24-border overflow-hidden">
+    <div class="p-6 border-b border-k24-border bg-gray-50">
+        <h1 class="text-xl font-bold text-k24-textPrimary">Edit Obat: {{ medicine.name }}</h1>
+    </div>
+    <form action="/admin/edit-obat/{{ medicine.id }}" method="POST" enctype="multipart/form-data" class="p-8 space-y-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+                <label class="block text-sm font-medium text-k24-textPrimary mb-1">Nama Obat <span class="text-red-500">*</span></label>
+                <input type="text" name="name" value="{{ medicine.name }}" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-k24-primary focus:border-k24-primary">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-k24-textPrimary mb-1">Kategori <span class="text-red-500">*</span></label>
+                <select name="category_id" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-k24-primary focus:border-k24-primary bg-white">
+                    {% for cat in categories %}
+                    <option value="{{ cat.id }}" {% if cat.id == medicine.category_id %}selected{% endif %}>{{ cat.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-k24-textPrimary mb-1">Harga (Rp) <span class="text-red-500">*</span></label>
+                <input type="number" name="price" value="{{ medicine.price }}" required min="0" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-k24-primary focus:border-k24-primary">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-k24-textPrimary mb-1">Foto Produk (kosongkan jika tidak ganti)</label>
+                {% if medicine.image_url %}
+                <div class="mb-2">
+                    <img src="{{ medicine.image_url }}" alt="{{ medicine.name }}" class="h-20 object-contain rounded border border-gray-200 p-1 bg-gray-50">
+                </div>
+                {% endif %}
+                <input type="file" name="file" accept="image/*" onchange="previewImage(event)" class="w-full px-3 py-1.5 border border-gray-300 rounded-md file:mr-3 file:py-1 file:px-3 file:rounded file:border-0 file:text-sm file:font-medium file:bg-green-50 file:text-k24-primary hover:file:bg-green-100 cursor-pointer">
+                <div id="preview-container" class="mt-2 hidden">
+                    <img id="preview-img" class="h-24 object-contain rounded border border-gray-200 p-1 bg-gray-50">
+                </div>
+            </div>
+        </div>
+
+        <div>
+            <label class="block text-sm font-medium text-k24-textPrimary mb-1">Deskripsi</label>
+            <textarea name="description" rows="2" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-k24-primary focus:border-k24-primary resize-none">{{ medicine.description or '' }}</textarea>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div>
+                <label class="block text-sm font-medium text-k24-textPrimary mb-1">Komposisi</label>
+                <textarea name="composition" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-k24-primary focus:border-k24-primary resize-none text-sm">{{ medicine.composition or '' }}</textarea>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-k24-textPrimary mb-1">Dosis / Aturan Pakai</label>
+                <textarea name="dosage" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-k24-primary focus:border-k24-primary resize-none text-sm">{{ medicine.dosage or '' }}</textarea>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-k24-textPrimary mb-1">Efek Samping</label>
+                <textarea name="side_effects" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-k24-primary focus:border-k24-primary resize-none text-sm">{{ medicine.side_effects or '' }}</textarea>
+            </div>
+        </div>
+
+        <div class="flex gap-4 pt-4 border-t border-k24-border">
+            <button type="submit" class="bg-k24-primary text-white font-bold py-2 px-8 rounded-md hover:bg-green-700 transition-colors shadow-sm">
+                Simpan Perubahan
+            </button>
+            <a href="/admin/obat" class="text-k24-textSecondary hover:text-k24-primary font-medium py-2 px-4">Batal</a>
+        </div>
+    </form>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+function previewImage(event) {
+    const file = event.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = e => {
+            document.getElementById('preview-img').src = e.target.result;
+            document.getElementById('preview-container').classList.remove('hidden');
+        };
+        reader.readAsDataURL(file);
+    }
+}
+</script>
+{% endblock %}

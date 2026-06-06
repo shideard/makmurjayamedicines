@@ -3,9 +3,14 @@
 {% block title %}Dashboard Admin - Klinik Makmur Jaya{% endblock %}
 
 {% block content %}
-<div class="mb-8">
-    <h1 class="text-2xl font-bold text-k24-textPrimary">Ringkasan Sistem</h1>
-    <p class="text-k24-textSecondary">Pantau penjualan, stok obat, dan notifikasi terbaru.</p>
+<div class="mb-8 flex flex-col md:flex-row justify-between items-start md:items-center">
+    <div>
+        <h1 class="text-2xl font-bold text-k24-textPrimary">Ringkasan Sistem</h1>
+        <p class="text-k24-textSecondary">Pantau penjualan, stok obat, dan notifikasi terbaru.</p>
+    </div>
+    <button onclick="exportToPDF()" class="mt-4 md:mt-0 flex items-center bg-k24-primary text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors shadow-sm font-bold text-sm">
+        <i data-lucide="file-down" class="w-4 h-4 mr-2"></i> Export Laporan PDF
+    </button>
 </div>
 
 <!-- Top Stats Cards -->
@@ -51,9 +56,13 @@
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
     <!-- Main Chart Area -->
     <div class="lg:col-span-2 bg-white p-6 rounded-xl shadow-sm border border-k24-border">
-        <div class="flex justify-between items-center mb-6">
-            <h3 class="text-lg font-bold text-k24-textPrimary">Grafik Penjualan Bulanan</h3>
-            <button class="text-sm text-k24-primary font-medium hover:text-green-700">Lihat Laporan Lengkap</button>
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+            <h3 class="text-lg font-bold text-k24-textPrimary">Grafik Penjualan</h3>
+            <div class="flex items-center space-x-2 bg-gray-100 p-1 rounded-lg">
+                <button onclick="updateChartPeriod('daily')" id="btn-daily" class="px-3 py-1 text-sm font-medium rounded-md text-gray-600 hover:text-k24-primary transition-colors">Harian</button>
+                <button onclick="updateChartPeriod('weekly')" id="btn-weekly" class="px-3 py-1 text-sm font-medium rounded-md text-gray-600 hover:text-k24-primary transition-colors">Mingguan</button>
+                <button onclick="updateChartPeriod('monthly')" id="btn-monthly" class="px-3 py-1 text-sm font-medium rounded-md bg-white text-k24-primary shadow-sm transition-colors">Bulanan</button>
+            </div>
         </div>
         <div class="h-64 w-full flex items-center justify-center bg-gray-50 rounded border border-gray-100">
             <canvas id="salesChart"></canvas>
@@ -70,30 +79,22 @@
             <div class="bg-yellow-50 border-l-4 border-k24-warning p-4 rounded-r-md">
                 <p class="text-sm text-yellow-800 font-medium flex items-start">
                     <i data-lucide="info" class="w-4 h-4 mr-2 mt-0.5 flex-shrink-0"></i>
-                    12 Obat hampir habis (stok < 10)
+                    <span id="alert-low-stock">0</span>&nbsp;Obat hampir habis (stok < 10)
                 </p>
             </div>
             <div class="bg-red-50 border-l-4 border-k24-danger p-4 rounded-r-md">
                 <p class="text-sm text-red-800 font-medium flex items-start">
                     <i data-lucide="alert-circle" class="w-4 h-4 mr-2 mt-0.5 flex-shrink-0"></i>
-                    5 Pesanan gagal diverifikasi pembayarannya
+                    <span id="alert-failed-payments">0</span>&nbsp;Pesanan gagal diverifikasi pembayarannya
                 </p>
             </div>
             <div class="bg-white p-6 rounded-xl shadow-sm border border-k24-border">
                 <h3 class="text-lg font-bold text-k24-textPrimary mb-4">Aksi Cepat</h3>
                 <div class="space-y-3">
-                    <button class="w-full text-left px-4 py-3 border border-k24-border rounded-lg hover:bg-gray-50 flex items-center justify-between text-sm font-medium transition-colors">
+                    <a href="/admin/tambah-obat" class="w-full text-left px-4 py-3 border border-k24-border rounded-lg hover:bg-gray-50 flex items-center justify-between text-sm font-medium transition-colors">
                         <span class="flex items-center text-k24-textPrimary"><i data-lucide="plus" class="w-4 h-4 mr-2 text-k24-primary"></i> Tambah Obat Baru</span>
                         <i data-lucide="chevron-right" class="w-4 h-4 text-gray-400"></i>
-                    </button>
-                    <button onclick="window.print()" class="w-full text-left px-4 py-3 border border-k24-border rounded-lg hover:bg-gray-50 flex items-center justify-between text-sm font-medium transition-colors">
-                        <span class="flex items-center text-k24-textPrimary"><i data-lucide="printer" class="w-4 h-4 mr-2 text-k24-primary"></i> Cetak Laporan (PDF)</span>
-                        <i data-lucide="chevron-right" class="w-4 h-4 text-gray-400"></i>
-                    </button>
-                    <button onclick="testImportCSV()" class="w-full text-left px-4 py-3 border border-k24-accent rounded-lg hover:bg-red-50 flex items-center justify-between text-sm font-bold transition-colors text-k24-accent">
-                        <span class="flex items-center"><i data-lucide="upload-cloud" class="w-4 h-4 mr-2"></i> Demo CSV Import (Background Task)</span>
-                        <i data-lucide="chevron-right" class="w-4 h-4"></i>
-                    </button>
+                    </a>
                 </div>
             </div>
             <div class="bg-green-50 border-l-4 border-k24-success p-4 rounded-r-md">
@@ -108,28 +109,57 @@
         </div>
     </div>
 
-    <!-- Quick Actions -->
     <div class="bg-white rounded-lg shadow-sm border border-k24-border p-6 lg:col-span-2">
         <h3 class="text-lg font-bold text-k24-textPrimary mb-4 border-b border-k24-border pb-2">Aksi Cepat</h3>
         <div class="grid grid-cols-2 md:grid-cols-4 gap-4 pt-2">
-            <a href="#" class="flex flex-col items-center justify-center p-4 border border-k24-border rounded-lg hover:border-k24-primary hover:bg-green-50 transition-colors group">
+            <a href="/admin/tambah-obat" class="flex flex-col items-center justify-center p-4 border border-k24-border rounded-lg hover:border-k24-primary hover:bg-green-50 transition-colors group">
                 <i data-lucide="plus-circle" class="w-8 h-8 text-k24-primary mb-2 group-hover:scale-110 transition-transform"></i>
                 <span class="text-sm font-medium text-k24-textPrimary text-center">Tambah Obat</span>
             </a>
-            <a href="#" class="flex flex-col items-center justify-center p-4 border border-k24-border rounded-lg hover:border-k24-primary hover:bg-green-50 transition-colors group">
-                <i data-lucide="package-plus" class="w-8 h-8 text-k24-primary mb-2 group-hover:scale-110 transition-transform"></i>
-                <span class="text-sm font-medium text-k24-textPrimary text-center">Update Stok Batch</span>
+            <a href="/admin/obat" class="flex flex-col items-center justify-center p-4 border border-k24-border rounded-lg hover:border-k24-primary hover:bg-green-50 transition-colors group">
+                <i data-lucide="package" class="w-8 h-8 text-k24-primary mb-2 group-hover:scale-110 transition-transform"></i>
+                <span class="text-sm font-medium text-k24-textPrimary text-center">Kelola Obat</span>
             </a>
-            <a href="#" class="flex flex-col items-center justify-center p-4 border border-k24-border rounded-lg hover:border-k24-primary hover:bg-green-50 transition-colors group">
-                <i data-lucide="receipt" class="w-8 h-8 text-k24-primary mb-2 group-hover:scale-110 transition-transform"></i>
-                <span class="text-sm font-medium text-k24-textPrimary text-center">Verifikasi Order</span>
+            <a href="/admin/kategori" class="flex flex-col items-center justify-center p-4 border border-k24-border rounded-lg hover:border-k24-primary hover:bg-green-50 transition-colors group">
+                <i data-lucide="tags" class="w-8 h-8 text-k24-primary mb-2 group-hover:scale-110 transition-transform"></i>
+                <span class="text-sm font-medium text-k24-textPrimary text-center">Kelola Kategori</span>
             </a>
-            <a href="#" class="flex flex-col items-center justify-center p-4 border border-k24-border rounded-lg hover:border-k24-primary hover:bg-green-50 transition-colors group">
-                <i data-lucide="file-bar-chart" class="w-8 h-8 text-k24-primary mb-2 group-hover:scale-110 transition-transform"></i>
-                <span class="text-sm font-medium text-k24-textPrimary text-center">Cetak Laporan</span>
+            <a href="/admin/audit-log" class="flex flex-col items-center justify-center p-4 border border-k24-border rounded-lg hover:border-k24-primary hover:bg-green-50 transition-colors group">
+                <i data-lucide="shield-check" class="w-8 h-8 text-k24-primary mb-2 group-hover:scale-110 transition-transform"></i>
+                <span class="text-sm font-medium text-k24-textPrimary text-center">Audit Log</span>
             </a>
         </div>
     </div>
+</div>
+
+<!-- Hidden PDF Layout Container -->
+<div id="pdf-report-container" class="hidden fixed top-0 left-[-9999px] bg-white p-8 w-[800px] z-[-1]">
+    <div class="flex items-center justify-between border-b-2 border-k24-primary pb-4 mb-6">
+        <div>
+            <h1 class="text-3xl font-black text-k24-primary tracking-tight">Klinik Makmur Jaya</h1>
+            <p class="text-gray-600 text-sm mt-1">Laporan Ringkasan Sistem & Penjualan</p>
+        </div>
+        <div class="text-right text-sm text-gray-500">
+            Dicetak pada: <span id="pdf-date"></span><br>
+            Periode Grafik: <span id="pdf-period">Bulanan</span>
+        </div>
+    </div>
+    <div class="grid grid-cols-2 gap-4 mb-8">
+        <div class="bg-green-50 p-4 rounded border border-green-100">
+            <p class="text-xs text-green-800 uppercase font-bold">Total Pendapatan</p>
+            <p class="text-xl font-black text-green-900" id="pdf-revenue">Rp 0</p>
+        </div>
+        <div class="bg-blue-50 p-4 rounded border border-blue-100">
+            <p class="text-xs text-blue-800 uppercase font-bold">Total Pesanan</p>
+            <p class="text-xl font-black text-blue-900" id="pdf-orders">0</p>
+        </div>
+    </div>
+    <h3 class="text-lg font-bold text-gray-800 mb-4">Grafik Penjualan</h3>
+    <div class="mb-8 border border-gray-200 rounded p-4">
+        <!-- We will copy the canvas image here -->
+        <img id="pdf-chart-img" src="" class="w-full h-auto" />
+    </div>
+    <p class="text-center text-xs text-gray-400 mt-12 border-t pt-4">Di-generate secara otomatis oleh Sistem Makmur Jaya Medicines</p>
 </div>
 
 <!-- Toast Notification Container -->
@@ -138,7 +168,12 @@
 {% endblock %}
 
 {% block scripts %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <script>
+    let salesChartInstance = null;
+    let currentPeriod = 'monthly';
+    let globalStats = null;
+
     // Toast UI builder
     function showToast(message, type = "success") {
         const container = document.getElementById('toast-container');
@@ -152,12 +187,9 @@
         `;
         container.appendChild(toast);
         
-        // Trigger reflow
         void toast.offsetWidth;
-        // Slide up and fade in
         toast.classList.remove('translate-y-10', 'opacity-0');
         
-        // Remove after 5 seconds
         setTimeout(() => {
             toast.classList.add('opacity-0');
             setTimeout(() => toast.remove(), 300);
@@ -169,52 +201,116 @@
     const wsUrl = `${protocol}//${window.location.host}/api/v1/ws/notifications`;
     const socket = new WebSocket(wsUrl);
 
-    socket.onopen = function(e) {
-        console.log("WebSocket connected to notifications");
-    };
-
-    socket.onmessage = function(event) {
-        const message = event.data;
-        showToast(message, "success");
-    };
-
-    socket.onclose = function(event) {
-        console.log("WebSocket connection closed");
-    };
+    socket.onopen = function(e) { console.log("WebSocket connected"); };
+    socket.onmessage = function(event) { showToast(event.data, "success"); };
     
-    // Simulate import form submit
-    function testImportCSV() {
-        const formData = new FormData();
-        // Create a dummy CSV file
-        const csvContent = "name,slug,price,description\nObatA,obat-a,10000,Deskripsi A\nObatB,obat-b,20000,Deskripsi B";
-        const file = new File([csvContent], "dummy.csv", { type: "text/csv" });
-        formData.append("file", file);
-        formData.append("category_id", "some-dummy-category");
-        
-        fetch('/api/v1/upload/import-csv', {
-            method: 'POST',
-            body: formData
-        }).then(res => res.json()).then(data => {
-            showToast(data.message, "success");
-        }).catch(err => {
-            showToast("Gagal memulai import", "error");
+    async function loadStats(period = 'monthly') {
+        currentPeriod = period;
+        try {
+            const statRes = await fetch(`/api/v1/dashboard/stats?period=${period}`);
+            if (!statRes.ok) throw new Error("Gagal mengambil data");
+            const stats = await statRes.json();
+            globalStats = stats;
+            
+            // Update UI
+            document.getElementById('stat-revenue').textContent = `Rp ${stats.total_revenue.toLocaleString('id-ID')}`;
+            document.getElementById('stat-orders').textContent = stats.total_orders;
+            document.getElementById('stat-customers').textContent = stats.total_customers;
+            document.getElementById('stat-medicines').textContent = stats.total_medicines;
+            document.getElementById('alert-low-stock').textContent = stats.low_stock_count;
+            document.getElementById('alert-failed-payments').textContent = stats.failed_payments_count;
+            
+            // Update PDF texts
+            document.getElementById('pdf-revenue').textContent = `Rp ${stats.total_revenue.toLocaleString('id-ID')}`;
+            document.getElementById('pdf-orders').textContent = stats.total_orders;
+            const today = new Date().toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' });
+            document.getElementById('pdf-date').textContent = today;
+            document.getElementById('pdf-period').textContent = period === 'daily' ? 'Harian' : (period === 'weekly' ? 'Mingguan' : 'Bulanan');
+
+            renderChart(stats.chart_labels, stats.chart_data);
+        } catch(e) {
+            console.error(e);
+            showToast("Gagal memuat statistik", "error");
+        }
+    }
+
+    function renderChart(labels, data) {
+        const ctx = document.getElementById('salesChart').getContext('2d');
+        if (salesChartInstance) {
+            salesChartInstance.destroy();
+        }
+        salesChartInstance = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels || [],
+                datasets: [{
+                    label: 'Pendapatan (Juta Rp)',
+                    data: data || [],
+                    borderColor: '#1C805B',
+                    backgroundColor: 'rgba(28, 128, 91, 0.1)',
+                    borderWidth: 2,
+                    tension: 0.4,
+                    fill: true,
+                    pointBackgroundColor: '#1C805B',
+                    pointRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                animation: { duration: 500 },
+                plugins: {
+                    legend: { position: 'top' },
+                    tooltip: { callbacks: { label: ctx => `Rp ${(ctx.raw * 1000000).toLocaleString('id-ID')}` } }
+                },
+                scales: { y: { beginAtZero: true, title: { display: true, text: 'Juta Rp' } } }
+            }
         });
     }
 
-    // Fetch Stats and Health, Initialize Chart
-    document.addEventListener('DOMContentLoaded', async () => {
-        try {
-            // Fetch Stats
-            const statRes = await fetch('/api/v1/dashboard/stats');
-            if (statRes.ok) {
-                const stats = await statRes.json();
-                document.getElementById('stat-revenue').textContent = `Rp ${stats.total_revenue.toLocaleString('id-ID')}`;
-                document.getElementById('stat-orders').textContent = stats.total_orders;
-                document.getElementById('stat-customers').textContent = stats.total_customers;
-                document.getElementById('stat-medicines').textContent = stats.total_medicines;
+    function updateChartPeriod(period) {
+        ['daily', 'weekly', 'monthly'].forEach(p => {
+            const btn = document.getElementById(`btn-${p}`);
+            if(p === period) {
+                btn.classList.remove('text-gray-600', 'bg-transparent');
+                btn.classList.add('bg-white', 'text-k24-primary', 'shadow-sm');
+            } else {
+                btn.classList.add('text-gray-600', 'bg-transparent');
+                btn.classList.remove('bg-white', 'text-k24-primary', 'shadow-sm');
             }
+        });
+        loadStats(period);
+    }
 
-            // Fetch Health
+    function exportToPDF() {
+        showToast("Menyiapkan PDF...", "success");
+        // Clone chart to img
+        const canvas = document.getElementById('salesChart');
+        const imgUrl = canvas.toDataURL('image/png');
+        document.getElementById('pdf-chart-img').src = imgUrl;
+
+        const element = document.getElementById('pdf-report-container');
+        element.classList.remove('hidden'); // Temporarily show
+
+        const opt = {
+            margin:       0.5,
+            filename:     `Laporan_Penjualan_MakmurJaya_${currentPeriod}.pdf`,
+            image:        { type: 'jpeg', quality: 0.98 },
+            html2canvas:  { scale: 2, useCORS: true },
+            jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
+        };
+
+        html2pdf().set(opt).from(element).save().then(() => {
+            element.classList.add('hidden'); // Hide again
+            showToast("PDF berhasil diunduh!", "success");
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', async () => {
+        loadStats('monthly');
+
+        // Fetch Server Health
+        try {
             const healthRes = await fetch('/api/v1/dashboard/health');
             if (healthRes.ok) {
                 const health = await healthRes.json();
@@ -227,38 +323,7 @@
                     </ul>
                 `;
             }
-
-            // Initialize Chart.js
-            const ctx = document.getElementById('salesChart').getContext('2d');
-            new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul'],
-                    datasets: [{
-                        label: 'Pendapatan (Juta Rp)',
-                        data: [65, 59, 80, 81, 56, 125, 140],
-                        borderColor: '#1C805B',
-                        backgroundColor: 'rgba(28, 128, 91, 0.1)',
-                        borderWidth: 2,
-                        tension: 0.4,
-                        fill: true
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { position: 'top' }
-                    },
-                    scales: {
-                        y: { beginAtZero: true }
-                    }
-                }
-            });
-
-        } catch (e) {
-            console.error("Failed to fetch dashboard data", e);
-        }
+        } catch(e) {}
     });
 </script>
 {% endblock %}

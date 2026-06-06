@@ -44,38 +44,38 @@
                     <p>{{ medicine.description or 'Tidak ada deskripsi tersedia untuk produk ini.' }}</p>
                     
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
-                        {% if medicine.composition %}
                         <div class="bg-gray-50 p-3 rounded-md border border-k24-border">
                             <h4 class="font-bold text-k24-primary text-xs uppercase mb-1">Komposisi</h4>
-                            <p class="text-sm">{{ medicine.composition }}</p>
+                            <p class="text-sm">{{ medicine.composition or '-' }}</p>
                         </div>
-                        {% endif %}
                         
-                        {% if medicine.dosage %}
                         <div class="bg-gray-50 p-3 rounded-md border border-k24-border">
                             <h4 class="font-bold text-k24-primary text-xs uppercase mb-1">Dosis Aturan Pakai</h4>
-                            <p class="text-sm">{{ medicine.dosage }}</p>
+                            <p class="text-sm">{{ medicine.dosage or '-' }}</p>
                         </div>
-                        {% endif %}
                         
-                        {% if medicine.side_effects %}
                         <div class="bg-red-50 p-3 rounded-md border border-red-100 col-span-1 md:col-span-2">
                             <h4 class="font-bold text-red-700 text-xs uppercase mb-1">Efek Samping & Peringatan</h4>
-                            <p class="text-sm text-red-900">{{ medicine.side_effects }}</p>
+                            <p class="text-sm text-red-900">{{ medicine.side_effects or '-' }}</p>
                         </div>
-                        {% endif %}
                     </div>
                 </div>
             </div>
             
             <div class="flex flex-col sm:flex-row gap-4 pt-6 border-t border-k24-border">
+                {% if not user or (user.role and user.role.name in ['Pelanggan', 'Customer']) %}
                 <button 
-                    @click="addToCart('{{ medicine.id }}', '{{ medicine.name }}', {{ medicine.price }})"
+                    @click="addToCart('{{ medicine.id }}', '{{ medicine.name }}', {{ medicine.price }}, '{{ medicine.image_url or '' }}')"
                     {% if not medicine.stock or medicine.stock == 0 %}disabled{% endif %}
                     class="flex-1 bg-k24-primary hover:bg-green-700 text-white font-bold py-3 px-6 rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center shadow-sm"
                 >
                     <i data-lucide="shopping-cart" class="w-5 h-5 mr-2"></i> Tambah ke Keranjang
                 </button>
+                {% else %}
+                <div class="flex-1 bg-gray-100 text-gray-500 font-bold py-3 px-6 rounded-md flex items-center justify-center shadow-sm cursor-not-allowed">
+                    Hanya untuk Pelanggan
+                </div>
+                {% endif %}
             </div>
         </div>
     </div>
@@ -87,11 +87,12 @@
     document.addEventListener('alpine:init', () => {
         Alpine.data('cartStore', () => ({
             cart: JSON.parse(localStorage.getItem('k24_cart') || '[]'),
-            addToCart(id, name, price) {
+            addToCart(id, name, price, image) {
                 const existing = this.cart.find(item => item.id === id);
                 if (existing) existing.quantity += 1;
-                else this.cart.push({ id, name, price, quantity: 1 });
+                else this.cart.push({ id, name, price, quantity: 1, image: image });
                 localStorage.setItem('k24_cart', JSON.stringify(this.cart));
+                window.dispatchEvent(new CustomEvent('cart-updated', { detail: this.cart }));
                 alert(`${name} ditambahkan ke keranjang!`);
             }
         }))

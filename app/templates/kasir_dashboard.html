@@ -34,9 +34,6 @@
     <div class="bg-white rounded-xl shadow-sm border border-k24-border overflow-hidden">
         <div class="p-4 border-b border-k24-border bg-gray-50 flex justify-between items-center">
             <h2 class="text-lg font-bold text-k24-textPrimary">Antrean Pembayaran & Pesanan</h2>
-            <button class="bg-k24-primary text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-green-700 transition-colors flex items-center gap-2">
-                <i data-lucide="scan-barcode" class="w-4 h-4"></i> Mode Point of Sales (POS)
-            </button>
         </div>
         
         <div class="overflow-x-auto p-4">
@@ -57,7 +54,7 @@
                         <td class="py-3 px-4 text-k24-textSecondary text-sm">{{ order.created_at.strftime("%H:%M") }}</td>
                         <td class="py-3 px-4 font-medium text-k24-primary">Rp {{ "{:,.0f}".format(order.grand_total).replace(",", ".") }}</td>
                         <td class="py-3 px-4">
-                            <button class="text-blue-600 hover:text-blue-800 text-sm font-medium">Proses</button>
+                            <a href="/kasir/pesanan/{{ order.id }}" class="text-blue-600 hover:text-blue-800 text-sm font-medium border border-blue-600 hover:bg-blue-50 px-3 py-1 rounded transition-colors inline-block">Lihat & Proses</a>
                         </td>
                     </tr>
                     {% endfor %}

@@ -26,8 +26,13 @@
                 <ul class="divide-y divide-k24-border" x-show="cart.length > 0">
                     <template x-for="(item, index) in cart" :key="item.id">
                         <li class="p-6 flex flex-col sm:flex-row sm:items-center gap-6">
-                            <div class="w-20 h-20 bg-gray-100 rounded-md flex items-center justify-center border border-k24-border">
-                                <i data-lucide="pill" class="w-8 h-8 text-gray-400"></i>
+                            <div class="w-20 h-20 bg-gray-100 rounded-md flex items-center justify-center border border-k24-border overflow-hidden">
+                                <template x-if="item.image">
+                                    <img :src="item.image" :alt="item.name" class="w-full h-full object-contain p-1">
+                                </template>
+                                <template x-if="!item.image">
+                                    <i data-lucide="pill" class="w-8 h-8 text-gray-400"></i>
+                                </template>
                             </div>
                             <div class="flex-1">
                                 <h3 class="text-lg font-bold text-k24-textPrimary" x-text="item.name"></h3>
@@ -119,6 +124,7 @@
             
             saveCart() {
                 localStorage.setItem('k24_cart', JSON.stringify(this.cart));
+                window.dispatchEvent(new CustomEvent('cart-updated', { detail: this.cart }));
             },
             
             formatRupiah(num) {

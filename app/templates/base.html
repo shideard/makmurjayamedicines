@@ -68,10 +68,12 @@
                 </div>
                 <div class="flex items-center space-x-4">
                     <a href="/katalog" class="text-k24-textSecondary hover:text-k24-primary font-medium text-sm transition-colors">Katalog Obat</a>
-                    <a href="/keranjang" class="text-k24-textSecondary hover:text-k24-primary font-medium text-sm transition-colors relative">
+                    {% if not user or (user.role and user.role.name in ['Pelanggan', 'Customer']) %}
+                    <a href="/keranjang" class="text-k24-textSecondary hover:text-k24-primary font-medium text-sm transition-colors relative" x-data="{ count: 0 }" x-init="count = JSON.parse(localStorage.getItem('k24_cart') || '[]').reduce((sum, item) => sum + item.quantity, 0); window.addEventListener('cart-updated', e => { count = e.detail.reduce((sum, item) => sum + item.quantity, 0); })">
                         <i data-lucide="shopping-cart" class="w-5 h-5 inline"></i>
-                        <span class="absolute -top-2 -right-2 bg-k24-accent text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">0</span>
+                        <span class="absolute -top-2 -right-2 bg-k24-accent text-white text-xs rounded-full min-w-[16px] h-4 px-1 flex items-center justify-center" x-text="count" x-show="count > 0"></span>
                     </a>
+                    {% endif %}
                     
                     {% if user %}
                         <!-- User Menu Dropdown -->

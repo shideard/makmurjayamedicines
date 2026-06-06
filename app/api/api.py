@@ -26,6 +26,7 @@ dashboard_router = APIRouter()
 
 @dashboard_router.get("/stats")
 def get_dashboard_stats(
+    period: str = "monthly",
     db: Session = Depends(get_db),
     current_admin: User = Depends(deps.get_current_admin)
 ):
@@ -35,13 +36,62 @@ def get_dashboard_stats(
     total_orders = db.query(func.count(Order.id)).scalar() or 0
     total_customers = db.query(func.count(Customer.id)).scalar() or 0
     total_medicines = db.query(func.count(Medicine.id)).scalar() or 0
-    total_revenue = db.query(func.sum(Order.total_amount)).scalar() or 0
+    total_revenue = db.query(func.sum(Order.grand_total)).filter(Order.status == "COMPLETED").scalar() or 0.0
+
+    from app.models.models import InventoryBatch, Payment
+    low_stock_count = db.query(InventoryBatch).filter(InventoryBatch.quantity < 10).count()
+    failed_payments_count = db.query(Payment).filter(Payment.status == "FAILED").count()
+
+    from datetime import date, datetime, timedelta
+    from dateutil.relativedelta import relativedelta
+    chart_data = []
+    chart_labels = []
+
+    if period == "daily":
+        for i in range(6, -1, -1):
+            day_date = date.today() - timedelta(days=i)
+            next_day = day_date + timedelta(days=1)
+            daily_rev = db.query(func.sum(Order.grand_total)).filter(
+                Order.status == "COMPLETED",
+                Order.created_at >= day_date,
+                Order.created_at < next_day
+            ).scalar() or 0.0
+            chart_data.append(round(daily_rev / 1_000_000, 2))
+            chart_labels.append(day_date.strftime("%d %b"))
+    elif period == "weekly":
+        for i in range(6, -1, -1):
+            today = date.today()
+            start_of_this_week = today - timedelta(days=today.weekday())
+            start_week = start_of_this_week - timedelta(weeks=i)
+            end_week = start_week + timedelta(weeks=1)
+            weekly_rev = db.query(func.sum(Order.grand_total)).filter(
+                Order.status == "COMPLETED",
+                Order.created_at >= start_week,
+                Order.created_at < end_week
+            ).scalar() or 0.0
+            chart_data.append(round(weekly_rev / 1_000_000, 2))
+            chart_labels.append(start_week.strftime("%d %b"))
+    else: # monthly
+        for i in range(6, -1, -1):
+            month_date = date.today().replace(day=1) - relativedelta(months=i)
+            next_month = month_date + relativedelta(months=1)
+            monthly_rev = db.query(func.sum(Order.grand_total)).filter(
+                Order.status == "COMPLETED",
+                Order.created_at >= month_date,
+                Order.created_at < next_month
+            ).scalar() or 0.0
+            chart_data.append(round(monthly_rev / 1_000_000, 2))
+            chart_labels.append(month_date.strftime("%b %Y"))
 
     return {
         "total_revenue": total_revenue,
         "total_orders": total_orders,
         "total_customers": total_customers,
-        "total_medicines": total_medicines
+        "total_medicines": total_medicines,
+        "low_stock_count": low_stock_count,
+        "failed_payments_count": failed_payments_count,
+        "chart_data": chart_data,
+        "chart_labels": chart_labels
     }
 
 @dashboard_router.get("/health")

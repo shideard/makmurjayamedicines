@@ -134,6 +134,7 @@ class AuditLog(Base):
     entity_id = Column(String, nullable=True)
     details = Column(Text, nullable=True)
     ip_address = Column(String, nullable=True)
+    severity = Column(String, default="info")  # critical, warning, info
     created_at = Column(DateTime, default=datetime.utcnow)
     
     user = relationship("User")

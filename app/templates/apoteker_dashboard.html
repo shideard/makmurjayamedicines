@@ -45,7 +45,9 @@
     <div class="bg-white rounded-xl shadow-sm border border-k24-border overflow-hidden">
         <div class="p-4 border-b border-k24-border bg-gray-50 flex justify-between items-center">
             <h2 class="text-lg font-bold text-k24-textPrimary">Antrean Verifikasi Resep</h2>
-            <button class="text-sm text-k24-primary font-medium hover:underline">Lihat Semua</button>
+            <a href="/apoteker/stok-alert" class="text-sm text-k24-primary font-medium hover:underline flex items-center gap-1">
+                <i data-lucide="alert-triangle" class="w-4 h-4"></i> Lihat Alert Stok & Kadaluarsa
+            </a>
         </div>
         <div class="p-6">
             {% if pending_prescriptions %}
@@ -64,13 +66,17 @@
                         <td class="py-3 px-4 font-medium text-k24-textPrimary">{{ rx.doctor_name }}</td>
                         <td class="py-3 px-4 text-k24-textSecondary text-sm">{{ rx.customer.user.name }}</td>
                         <td class="py-3 px-4"><span class="px-2 py-1 bg-yellow-100 text-yellow-800 rounded text-xs font-medium">{{ rx.status }}</span></td>
-                        <td class="py-3 px-4">
-                            <form action="/api/v1/prescriptions/{{ rx.id }}/verify" method="POST" class="inline">
-                                <button type="submit" class="text-white bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded text-xs font-bold transition-colors shadow-sm">Verifikasi</button>
+                        <td class="py-3 px-4 flex gap-2">
+                            <a href="{{ rx.file_url }}" target="_blank" class="text-white bg-gray-600 hover:bg-gray-700 px-3 py-1 rounded text-xs font-bold transition-colors shadow-sm inline-block">Lihat</a>
+                            <form action="/api/v1/prescriptions/{{ rx.id }}/verify" method="POST" class="inline" onsubmit="return confirm('Setujui resep ini?')">
+                                <button type="submit" class="text-white bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded text-xs font-bold transition-colors shadow-sm">Setujui</button>
+                            </form>
+                            <form action="/api/v1/prescriptions/{{ rx.id }}/reject" method="POST" class="inline" onsubmit="return confirm('Tolak resep ini?')">
+                                <button type="submit" class="text-white bg-red-500 hover:bg-red-700 px-3 py-1 rounded text-xs font-bold transition-colors shadow-sm">Tolak</button>
                             </form>
                         </td>
                     </tr>
-                    {% endendfor %}
+                    {% endfor %}
                 </tbody>
             </table>
             {% else %}
