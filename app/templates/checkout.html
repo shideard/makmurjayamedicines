@@ -1,89 +1,301 @@
 {% extends "base.html" %}
 
-{% block title %}Pembayaran - Klinik Makmur Jaya{% endblock %}
+{% block title %}Checkout - Klinik Makmur Jaya{% endblock %}
 
 {% block content %}
 <div class="mb-8">
-    <h1 class="text-3xl font-bold text-k24-textPrimary mb-2">Selesaikan Pembayaran</h1>
-    <p class="text-k24-textSecondary">Pilih metode pembayaran dan pastikan detail pesanan sudah benar.</p>
+    <h1 class="text-3xl font-bold text-k24-textPrimary mb-1">Selesaikan Pemesanan</h1>
+    <p class="text-k24-textSecondary">Lengkapi data pengiriman dan bukti pembayaran sebelum mengkonfirmasi.</p>
 </div>
 
-<div class="grid grid-cols-1 md:grid-cols-2 gap-8" x-data="checkoutPage()">
-    <div class="space-y-6">
-        <div class="bg-white p-6 rounded-lg shadow-sm border border-k24-border">
-            <h3 class="text-lg font-bold mb-4 border-b border-k24-border pb-2 text-k24-textPrimary">Informasi Pelanggan</h3>
-            <p class="text-k24-textSecondary mb-2"><strong class="text-k24-textPrimary">Nama:</strong> {{ user.name if user else 'Guest' }}</p>
-            <p class="text-k24-textSecondary"><strong class="text-k24-textPrimary">Email:</strong> {{ user.email if user else 'Silakan login terlebih dahulu' }}</p>
-            
+<form id="checkout-form" enctype="multipart/form-data">
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8" x-data="checkoutPage()">
+
+    <!-- LEFT: 2/3 -->
+    <div class="lg:col-span-2 space-y-6">
+
+        <!-- 1. Informasi Pelanggan -->
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-k24-border">
+            <h3 class="text-lg font-bold mb-4 border-b border-k24-border pb-3 text-k24-textPrimary flex items-center gap-2">
+                <i data-lucide="user" class="w-5 h-5 text-k24-primary"></i> Informasi Pelanggan
+            </h3>
             {% if not user %}
-            <div class="mt-4 p-4 bg-yellow-50 border border-k24-warning rounded-md">
-                <p class="text-sm text-yellow-800">Anda harus login untuk memproses pembayaran.</p>
-                <a href="/login" class="inline-block mt-2 text-k24-primary font-bold hover:underline">Login sekarang &rarr;</a>
+            <div class="p-4 bg-yellow-50 border border-yellow-200 rounded-md">
+                <p class="text-sm text-yellow-800 font-medium">⚠ Anda harus login untuk checkout.</p>
+                <a href="/login" class="inline-block mt-2 text-k24-primary font-bold hover:underline text-sm">Login sekarang →</a>
+            </div>
+            {% else %}
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+                <div class="bg-gray-50 p-3 rounded-lg border border-gray-200">
+                    <p class="text-gray-500 text-xs mb-1 uppercase tracking-wide">Nama</p>
+                    <p class="font-semibold text-k24-textPrimary">{{ user.name }}</p>
+                </div>
+                <div class="bg-gray-50 p-3 rounded-lg border border-gray-200">
+                    <p class="text-gray-500 text-xs mb-1 uppercase tracking-wide">Email</p>
+                    <p class="font-semibold text-k24-textPrimary">{{ user.email }}</p>
+                </div>
+                {% if user.customer and user.customer.phone %}
+                <div class="bg-gray-50 p-3 rounded-lg border border-gray-200">
+                    <p class="text-gray-500 text-xs mb-1 uppercase tracking-wide">Telepon</p>
+                    <p class="font-semibold text-k24-textPrimary">{{ user.customer.phone }}</p>
+                </div>
+                {% endif %}
+                {% if user.customer and user.customer.address %}
+                <div class="bg-gray-50 p-3 rounded-lg border border-gray-200">
+                    <p class="text-gray-500 text-xs mb-1 uppercase tracking-wide">Alamat Terdaftar</p>
+                    <p class="font-semibold text-k24-textPrimary">{{ user.customer.address }}</p>
+                </div>
+                {% endif %}
             </div>
             {% endif %}
         </div>
 
-        <div class="bg-white p-6 rounded-lg shadow-sm border border-k24-border">
-            <h3 class="text-lg font-bold mb-4 border-b border-k24-border pb-2 text-k24-textPrimary">Metode Pembayaran</h3>
+        <!-- 2. Metode Pengambilan -->
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-k24-border">
+            <h3 class="text-lg font-bold mb-4 border-b border-k24-border pb-3 text-k24-textPrimary flex items-center gap-2">
+                <i data-lucide="truck" class="w-5 h-5 text-k24-primary"></i> Metode Pengambilan
+            </h3>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                <label class="flex items-start gap-3 p-4 border-2 rounded-xl cursor-pointer transition-all"
+                       :class="deliveryType === 'pickup' ? 'border-k24-primary bg-green-50' : 'border-k24-border hover:bg-gray-50'">
+                    <input type="radio" value="pickup" x-model="deliveryType" name="delivery_type" class="hidden">
+                    <div class="mt-0.5 w-5 h-5 rounded-full border-2 flex-shrink-0 flex items-center justify-center"
+                         :class="deliveryType === 'pickup' ? 'border-k24-primary' : 'border-gray-300'">
+                        <div class="w-2.5 h-2.5 rounded-full bg-k24-primary" x-show="deliveryType === 'pickup'"></div>
+                    </div>
+                    <div>
+                        <p class="font-bold text-k24-textPrimary" :class="deliveryType === 'pickup' ? 'text-k24-primary' : ''">
+                            🏥 Ambil di Klinik
+                        </p>
+                        <p class="text-xs text-gray-500 mt-1">Ambil langsung di apotek klinik. Gratis!</p>
+                    </div>
+                </label>
+                <label class="flex items-start gap-3 p-4 border-2 rounded-xl cursor-pointer transition-all"
+                       :class="deliveryType === 'delivery' ? 'border-k24-primary bg-green-50' : 'border-k24-border hover:bg-gray-50'">
+                    <input type="radio" value="delivery" x-model="deliveryType" name="delivery_type" class="hidden">
+                    <div class="mt-0.5 w-5 h-5 rounded-full border-2 flex-shrink-0 flex items-center justify-center"
+                         :class="deliveryType === 'delivery' ? 'border-k24-primary' : 'border-gray-300'">
+                        <div class="w-2.5 h-2.5 rounded-full bg-k24-primary" x-show="deliveryType === 'delivery'"></div>
+                    </div>
+                    <div>
+                        <p class="font-bold text-k24-textPrimary" :class="deliveryType === 'delivery' ? 'text-k24-primary' : ''">
+                            🚚 Antar ke Alamat
+                        </p>
+                        <p class="text-xs text-gray-500 mt-1">Diantar ke alamat Anda oleh kurir klinik.</p>
+                    </div>
+                </label>
+            </div>
+
+            <!-- Delivery address section -->
+            <div x-show="deliveryType === 'delivery'" x-transition class="mt-4 space-y-3 border-t border-gray-100 pt-4">
+                <p class="text-sm font-semibold text-k24-textPrimary flex items-center gap-2">
+                    <i data-lucide="map-pin" class="w-4 h-4 text-k24-primary"></i> Alamat Pengiriman
+                </p>
+
+                {% if user and user.customer and user.customer.address %}
+                <!-- Case 1: User HAS registered address — show checkbox option -->
+                <label class="flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-all"
+                       :class="useRegisteredAddress ? 'bg-green-50 border-k24-primary' : 'bg-gray-50 border-gray-200 hover:border-gray-300'">
+                    <input type="checkbox" id="use-registered-address" x-model="useRegisteredAddress"
+                           class="mt-0.5 w-4 h-4 text-k24-primary border-gray-300 rounded focus:ring-k24-primary cursor-pointer flex-shrink-0">
+                    <div>
+                        <p class="text-sm font-semibold text-k24-textPrimary">Sama dengan alamat pasien saat ini</p>
+                        <p class="text-xs text-gray-500 mt-0.5">{{ user.customer.address }}</p>
+                    </div>
+                </label>
+
+                <div x-show="!useRegisteredAddress" x-transition>
+                    <label class="block text-sm font-medium text-k24-textPrimary mb-1.5">Masukkan alamat lain <span class="text-red-500">*</span></label>
+                    <textarea
+                        name="delivery_address"
+                        x-model="deliveryAddress"
+                        rows="3"
+                        placeholder="Jl. Contoh No. 123, RT/RW, Kelurahan, Kecamatan, Kota, Kode Pos"
+                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-k24-primary focus:border-k24-primary outline-none text-sm resize-none"
+                    ></textarea>
+                </div>
+                {% else %}
+                <!-- Case 2: No registered address — show input directly -->
+                <div class="mb-2 p-3 bg-amber-50 border border-amber-200 rounded-lg text-xs text-amber-700 flex items-start gap-2">
+                    <i data-lucide="alert-circle" class="w-3.5 h-3.5 flex-shrink-0 mt-0.5"></i>
+                    <span>Anda belum memiliki alamat terdaftar. Silakan isi alamat pengiriman di bawah.</span>
+                </div>
+                <textarea
+                    name="delivery_address"
+                    x-model="deliveryAddress"
+                    rows="3"
+                    placeholder="Jl. Contoh No. 123, RT/RW, Kelurahan, Kecamatan, Kota, Kode Pos"
+                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-k24-primary focus:border-k24-primary outline-none text-sm resize-none"
+                ></textarea>
+                {% endif %}
+
+                <input type="hidden" name="delivery_address_actual"
+                       :value="useRegisteredAddress ? '{{ user.customer.address if user and user.customer else '' }}' : deliveryAddress">
+            </div>
+            <input type="hidden" name="delivery_type_val" :value="deliveryType">
+        </div>
+
+        <!-- 3. Metode Pembayaran -->
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-k24-border">
+            <h3 class="text-lg font-bold mb-4 border-b border-k24-border pb-3 text-k24-textPrimary flex items-center gap-2">
+                <i data-lucide="credit-card" class="w-5 h-5 text-k24-primary"></i> Metode Pembayaran
+            </h3>
             <div class="space-y-3">
-                <label class="flex items-center p-4 border rounded-lg cursor-pointer transition-colors" :class="paymentMethod === 'BANK_TRANSFER' ? 'border-k24-primary bg-green-50' : 'border-k24-border hover:bg-gray-50'">
+                <label class="flex items-center p-4 border-2 rounded-xl cursor-pointer transition-all"
+                       :class="paymentMethod === 'BANK_TRANSFER' ? 'border-k24-primary bg-green-50' : 'border-k24-border hover:bg-gray-50'">
                     <input type="radio" name="payment" value="BANK_TRANSFER" class="hidden" x-model="paymentMethod">
-                    <i data-lucide="credit-card" class="w-6 h-6 text-k24-textSecondary mr-3" :class="paymentMethod === 'BANK_TRANSFER' ? 'text-k24-primary' : ''"></i>
-                    <span class="font-medium" :class="paymentMethod === 'BANK_TRANSFER' ? 'text-k24-primary' : 'text-k24-textPrimary'">Transfer Bank (BCA, Mandiri, BNI)</span>
+                    <div class="w-5 h-5 rounded-full border-2 mr-3 flex-shrink-0 flex items-center justify-center"
+                         :class="paymentMethod === 'BANK_TRANSFER' ? 'border-k24-primary' : 'border-gray-300'">
+                        <div class="w-2.5 h-2.5 rounded-full bg-k24-primary" x-show="paymentMethod === 'BANK_TRANSFER'"></div>
+                    </div>
+                    <div class="flex-1">
+                        <p class="font-semibold" :class="paymentMethod === 'BANK_TRANSFER' ? 'text-k24-primary' : 'text-k24-textPrimary'">💳 Transfer Bank</p>
+                        <p class="text-xs text-gray-500 mt-0.5">BCA: 1234567890 · Mandiri: 9876543210 · a/n Klinik Makmur Jaya</p>
+                    </div>
                 </label>
-                <label class="flex items-center p-4 border rounded-lg cursor-pointer transition-colors" :class="paymentMethod === 'E_WALLET' ? 'border-k24-primary bg-green-50' : 'border-k24-border hover:bg-gray-50'">
+                <label class="flex items-center p-4 border-2 rounded-xl cursor-pointer transition-all"
+                       :class="paymentMethod === 'E_WALLET' ? 'border-k24-primary bg-green-50' : 'border-k24-border hover:bg-gray-50'">
                     <input type="radio" name="payment" value="E_WALLET" class="hidden" x-model="paymentMethod">
-                    <i data-lucide="wallet" class="w-6 h-6 text-k24-textSecondary mr-3" :class="paymentMethod === 'E_WALLET' ? 'text-k24-primary' : ''"></i>
-                    <span class="font-medium" :class="paymentMethod === 'E_WALLET' ? 'text-k24-primary' : 'text-k24-textPrimary'">E-Wallet (OVO, GoPay, Dana)</span>
+                    <div class="w-5 h-5 rounded-full border-2 mr-3 flex-shrink-0 flex items-center justify-center"
+                         :class="paymentMethod === 'E_WALLET' ? 'border-k24-primary' : 'border-gray-300'">
+                        <div class="w-2.5 h-2.5 rounded-full bg-k24-primary" x-show="paymentMethod === 'E_WALLET'"></div>
+                    </div>
+                    <div class="flex-1">
+                        <p class="font-semibold" :class="paymentMethod === 'E_WALLET' ? 'text-k24-primary' : 'text-k24-textPrimary'">📱 E-Wallet</p>
+                        <p class="text-xs text-gray-500 mt-0.5">GoPay / OVO / Dana: 08123456789</p>
+                    </div>
                 </label>
-                <label class="flex items-center p-4 border rounded-lg cursor-pointer transition-colors" :class="paymentMethod === 'CASH' ? 'border-k24-primary bg-green-50' : 'border-k24-border hover:bg-gray-50'">
+                <label class="flex items-center p-4 border-2 rounded-xl cursor-pointer transition-all"
+                       :class="paymentMethod === 'CASH' ? 'border-k24-primary bg-green-50' : 'border-k24-border hover:bg-gray-50'">
                     <input type="radio" name="payment" value="CASH" class="hidden" x-model="paymentMethod">
-                    <i data-lucide="banknote" class="w-6 h-6 text-k24-textSecondary mr-3" :class="paymentMethod === 'CASH' ? 'text-k24-primary' : ''"></i>
-                    <span class="font-medium" :class="paymentMethod === 'CASH' ? 'text-k24-primary' : 'text-k24-textPrimary'">Bayar di Klinik (Cash)</span>
+                    <div class="w-5 h-5 rounded-full border-2 mr-3 flex-shrink-0 flex items-center justify-center"
+                         :class="paymentMethod === 'CASH' ? 'border-k24-primary' : 'border-gray-300'">
+                        <div class="w-2.5 h-2.5 rounded-full bg-k24-primary" x-show="paymentMethod === 'CASH'"></div>
+                    </div>
+                    <div class="flex-1">
+                        <p class="font-semibold" :class="paymentMethod === 'CASH' ? 'text-k24-primary' : 'text-k24-textPrimary'">💵 Bayar Tunai di Klinik</p>
+                        <p class="text-xs text-gray-500 mt-0.5">Bayar langsung saat ambil obat.</p>
+                    </div>
                 </label>
             </div>
         </div>
-    </div>
 
-    <div>
-        <div class="bg-white rounded-lg shadow-sm border border-k24-border p-6 sticky top-24">
-            <h3 class="text-lg font-bold text-k24-textPrimary mb-6 border-b border-k24-border pb-4">Ringkasan Pesanan</h3>
-            
-            <div class="space-y-4 mb-6" x-show="cart.length > 0">
+        <!-- 4. Upload Bukti Pembayaran -->
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-k24-border" x-show="paymentMethod && paymentMethod !== 'CASH'" x-transition>
+            <h3 class="text-lg font-bold mb-1 text-k24-textPrimary flex items-center gap-2">
+                <i data-lucide="upload" class="w-5 h-5 text-k24-primary"></i> Upload Bukti Pembayaran
+            </h3>
+            <p class="text-sm text-gray-500 mb-4">Wajib untuk Transfer Bank dan E-Wallet. Kasir akan memverifikasi sebelum pesanan diproses.</p>
+
+            <div class="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center hover:border-k24-primary transition-colors relative"
+                 :class="receiptPreview ? 'border-k24-primary bg-green-50' : ''">
+                <input type="file" id="receipt_file" name="receipt_file" accept="image/jpeg,image/png,image/webp,application/pdf"
+                       class="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                       @change="handleReceiptUpload($event)">
+                <template x-if="!receiptPreview">
+                    <div>
+                        <i data-lucide="file-image" class="w-10 h-10 text-gray-300 mx-auto mb-2"></i>
+                        <p class="text-sm font-medium text-gray-600">Klik atau seret file ke sini</p>
+                        <p class="text-xs text-gray-400 mt-1">JPG, PNG, WEBP, PDF (maks. 5MB)</p>
+                    </div>
+                </template>
+                <template x-if="receiptPreview">
+                    <div>
+                        <img :src="receiptPreview" class="max-h-40 mx-auto rounded-lg object-contain shadow-sm">
+                        <p class="text-xs text-k24-primary font-medium mt-2">✓ File terpilih — klik untuk ganti</p>
+                    </div>
+                </template>
+            </div>
+            <p class="text-xs text-amber-600 mt-2 flex items-center gap-1">
+                <i data-lucide="alert-circle" class="w-3.5 h-3.5"></i>
+                Pembayaran akan diverifikasi oleh Kasir. Status pesanan akan berubah setelah verifikasi.
+            </p>
+        </div>
+
+        <!-- Cash note -->
+        <div x-show="paymentMethod === 'CASH'" x-transition class="bg-blue-50 border border-blue-200 rounded-xl p-4 flex items-start gap-3">
+            <i data-lucide="info" class="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5"></i>
+            <div class="text-sm text-blue-800">
+                <p class="font-semibold">Pembayaran Tunai di Klinik</p>
+                <p class="mt-1 text-blue-700">Anda tidak perlu upload bukti pembayaran. Lakukan pembayaran langsung di kasir klinik saat mengambil obat.</p>
+            </div>
+        </div>
+
+    </div><!-- end LEFT -->
+
+    <!-- RIGHT: 1/3 – Ringkasan -->
+    <div class="lg:col-span-1">
+        <div class="bg-white rounded-xl shadow-sm border border-k24-border p-6 sticky top-24">
+            <h3 class="text-lg font-bold text-k24-textPrimary mb-5 border-b border-k24-border pb-3">Ringkasan Pesanan</h3>
+
+            <div class="space-y-3 mb-4" x-show="cart.length > 0">
                 <template x-for="item in cart" :key="item.id">
                     <div class="flex justify-between text-sm">
-                        <span class="text-k24-textSecondary" x-text="`${item.name} x ${item.quantity}`"></span>
-                        <span class="font-medium text-k24-textPrimary" x-text="`Rp ${formatRupiah(item.price * item.quantity)}`"></span>
+                        <span class="text-k24-textSecondary truncate max-w-[160px]" x-text="`${item.name} ×${item.quantity}`"></span>
+                        <span class="font-medium text-k24-textPrimary flex-shrink-0 ml-2" x-text="`Rp ${formatRupiah(item.price * item.quantity)}`"></span>
                     </div>
                 </template>
             </div>
 
-            <div class="border-t border-k24-border pt-4 space-y-4 mb-6">
-                <div class="flex justify-between text-k24-textSecondary">
-                    <span>Subtotal</span>
-                    <span>Rp <span x-text="formatRupiah(subtotal)"></span></span>
+            <div class="border-t border-k24-border pt-4 space-y-2 mb-5">
+                <div class="flex justify-between text-sm text-k24-textSecondary">
+                    <span>Subtotal</span><span x-text="`Rp ${formatRupiah(subtotal)}`"></span>
                 </div>
-                <div class="flex justify-between text-k24-textSecondary">
-                    <span>Pajak (11%)</span>
-                    <span>Rp <span x-text="formatRupiah(tax)"></span></span>
+                <div class="flex justify-between text-sm text-k24-textSecondary">
+                    <span>Pajak (11%)</span><span x-text="`Rp ${formatRupiah(tax)}`"></span>
                 </div>
-                <div class="border-t border-k24-border pt-4 flex justify-between font-bold text-lg text-k24-textPrimary">
-                    <span>Total Keseluruhan</span>
-                    <span class="text-k24-primary">Rp <span x-text="formatRupiah(total)"></span></span>
+                <div class="border-t border-k24-border pt-3 flex justify-between font-bold text-base text-k24-textPrimary">
+                    <span>Total</span>
+                    <span class="text-k24-primary" x-text="`Rp ${formatRupiah(total)}`"></span>
                 </div>
             </div>
 
-            <button 
-                @click="processCheckout" 
-                :disabled="cart.length === 0 || !paymentMethod || loading"
-                class="w-full bg-k24-primary hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-bold py-3 px-4 rounded-md transition-colors shadow-sm flex justify-center items-center"
+            <!-- Delivery badge -->
+            <div x-show="deliveryType" class="mb-4 flex items-center gap-2 text-sm">
+                <i data-lucide="map-pin" class="w-4 h-4 text-k24-primary"></i>
+                <span class="text-k24-textSecondary" x-text="deliveryType === 'pickup' ? '🏥 Ambil di klinik' : '🚚 Antar ke alamat'"></span>
+            </div>
+
+            <button
+                @click="processCheckout"
+                :disabled="cart.length === 0 || !paymentMethod || loading || (deliveryType === 'delivery' && !useRegisteredAddress && !deliveryAddress.trim()) || (paymentMethod !== 'CASH' && !receiptFile)"
+                class="w-full bg-k24-primary hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-bold py-3.5 px-4 rounded-xl transition-colors shadow-sm flex justify-center items-center gap-2 text-sm"
             >
-                <span x-show="!loading">Konfirmasi Pesanan</span>
-                <span x-show="loading">Memproses...</span>
+                <template x-if="!loading">
+                    <span class="flex items-center gap-2">
+                        <i data-lucide="check-circle" class="w-4 h-4"></i> Konfirmasi &amp; Kirim Pesanan
+                    </span>
+                </template>
+                <template x-if="loading">
+                    <span class="flex items-center gap-2">
+                        <svg class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                        </svg> Memproses...
+                    </span>
+                </template>
             </button>
+
+            <p class="text-xs text-gray-400 text-center mt-3 flex items-center justify-center gap-1">
+                <i data-lucide="shield-check" class="w-3 h-3 text-k24-success"></i>
+                Transaksi aman &amp; diverifikasi kasir
+            </p>
+
+            <!-- Validation hints -->
+            <div x-show="paymentMethod !== 'CASH' && !receiptFile" class="mt-3 text-xs text-amber-600 flex items-start gap-1.5">
+                <i data-lucide="alert-triangle" class="w-3.5 h-3.5 flex-shrink-0 mt-0.5"></i>
+                <span>Upload bukti pembayaran terlebih dahulu.</span>
+            </div>
+            <div x-show="deliveryType === 'delivery' && !useRegisteredAddress && !deliveryAddress.trim()" class="mt-2 text-xs text-amber-600 flex items-start gap-1.5">
+                <i data-lucide="alert-triangle" class="w-3.5 h-3.5 flex-shrink-0 mt-0.5"></i>
+                <span>Masukkan alamat pengiriman.</span>
+            </div>
         </div>
     </div>
+
 </div>
+</form>
+
 {% endblock %}
 
 {% block scripts %}
@@ -92,53 +304,88 @@
         Alpine.data('checkoutPage', () => ({
             cart: JSON.parse(localStorage.getItem('k24_cart') || '[]'),
             paymentMethod: '',
+            deliveryType: 'pickup',
+            deliveryAddress: '',
+            useRegisteredAddress: true,
+            receiptFile: null,
+            receiptPreview: null,
             loading: false,
-            
+
             get subtotal() {
                 return this.cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
             },
-            get tax() {
-                return this.subtotal * 0.11;
-            },
-            get total() {
-                return this.subtotal + this.tax;
-            },
-            
+            get tax() { return this.subtotal * 0.11; },
+            get total() { return this.subtotal + this.tax; },
+
             formatRupiah(num) {
                 return num.toLocaleString('id-ID', { maximumFractionDigits: 0 });
             },
 
+            handleReceiptUpload(event) {
+                const file = event.target.files[0];
+                if (!file) return;
+                if (file.size > 5 * 1024 * 1024) {
+                    alert('File terlalu besar! Maks 5MB.');
+                    return;
+                }
+                this.receiptFile = file;
+                if (file.type.startsWith('image/')) {
+                    const reader = new FileReader();
+                    reader.onload = e => { this.receiptPreview = e.target.result; };
+                    reader.readAsDataURL(file);
+                } else {
+                    this.receiptPreview = null; // PDF - no preview
+                    this.receiptPreview = 'pdf';
+                }
+            },
+
             async processCheckout() {
+                if (this.cart.length === 0) { alert('Keranjang kosong!'); return; }
+                if (!this.paymentMethod) { alert('Pilih metode pembayaran!'); return; }
+                if (this.deliveryType === 'delivery' && !this.useRegisteredAddress && !this.deliveryAddress.trim()) {
+                    alert('Masukkan alamat pengiriman!'); return;
+                }
+                if (this.paymentMethod !== 'CASH' && !this.receiptFile) {
+                    alert('Upload bukti pembayaran terlebih dahulu!'); return;
+                }
+
                 this.loading = true;
-                
+
                 try {
-                    const payload = {
-                        items: this.cart.map(i => ({
-                            id: i.id,
-                            name: i.name,
-                            price: parseFloat(i.price),
-                            quantity: parseInt(i.quantity)
-                        })),
-                        payment_method: this.paymentMethod
-                    };
-                    
+                    const formData = new FormData();
+                    formData.append('items_json', JSON.stringify(this.cart.map(i => ({
+                        id: i.id, name: i.name, price: parseFloat(i.price), quantity: parseInt(i.quantity)
+                    }))));
+                    formData.append('payment_method', this.paymentMethod);
+                    formData.append('delivery_type', this.deliveryType);
+
+                    let finalAddress = '';
+                    if (this.deliveryType === 'delivery') {
+                        finalAddress = this.useRegisteredAddress
+                            ? document.querySelector('[name="delivery_address_actual"]')?.value || ''
+                            : this.deliveryAddress;
+                    }
+                    formData.append('delivery_address', finalAddress);
+
+                    if (this.receiptFile) {
+                        formData.append('receipt_file', this.receiptFile);
+                    }
+
                     const response = await fetch('/api/v1/checkout', {
                         method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify(payload)
+                        body: formData
                     });
-                    
-                    if(response.ok) {
-                        alert('Pembayaran berhasil dikonfirmasi!');
+
+                    if (response.ok) {
                         localStorage.removeItem('k24_cart');
-                        window.location.href = '/pelanggan/dashboard';
+                        window.dispatchEvent(new CustomEvent('cart-updated', { detail: [] }));
+                        window.location.href = '/pelanggan/dashboard?checkout=success';
                     } else {
-                        alert('Gagal memproses pesanan. Silakan coba lagi.');
+                        const err = await response.json().catch(() => ({}));
+                        alert(err.detail || 'Gagal memproses pesanan. Coba lagi.');
                         this.loading = false;
                     }
-                } catch(e) {
+                } catch (e) {
                     console.error(e);
                     alert('Terjadi kesalahan jaringan.');
                     this.loading = false;

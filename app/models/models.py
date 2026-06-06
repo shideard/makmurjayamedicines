@@ -94,6 +94,8 @@ class Order(Base):
     total = Column(Float, nullable=False, default=0.0)
     tax = Column(Float, nullable=False, default=0.0)
     grand_total = Column(Float, nullable=False, default=0.0)
+    delivery_type = Column(String, default="pickup")  # pickup, delivery
+    delivery_address = Column(Text, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     
     customer = relationship("Customer", back_populates="orders")

@@ -454,43 +454,101 @@ def process_unggah_resep(
 
 # ─────────── CHECKOUT API ───────────
 
-class CheckoutItem(BaseModel):
-    id: str
-    name: str
-    price: float
-    quantity: int
-
-
-class CheckoutRequest(BaseModel):
-    items: List[CheckoutItem]
-    payment_method: str
-
+import json
 
 @router.post("/api/v1/checkout")
-def process_checkout(payload: CheckoutRequest, db: Session = Depends(get_db), current_user = Depends(deps.get_current_pelanggan)):
+async def process_checkout(
+    request: Request,
+    items_json: str = Form(...),
+    payment_method: str = Form(...),
+    delivery_type: str = Form("pickup"),
+    delivery_address: str = Form(""),
+    receipt_file: UploadFile = File(None),
+    db: Session = Depends(get_db),
+    current_user = Depends(deps.get_current_pelanggan)
+):
+    # Ensure customer profile
     if not current_user.customer:
         from app.models.models import Customer
         db.add(Customer(user_id=current_user.id))
         db.commit()
         db.refresh(current_user)
-    subtotal = sum(item.price * item.quantity for item in payload.items)
+
+    # Parse cart items
+    try:
+        items = json.loads(items_json)
+    except Exception:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=400, detail="Format item tidak valid")
+
+    subtotal = sum(float(i["price"]) * int(i["quantity"]) for i in items)
     tax = subtotal * 0.11
     grand_total = subtotal + tax
+
+    # Delivery address logic
+    final_delivery_address = None
+    if delivery_type == "delivery":
+        final_delivery_address = delivery_address.strip() or (current_user.customer.address if current_user.customer else None)
+        if not final_delivery_address:
+            from fastapi import HTTPException
+            raise HTTPException(status_code=400, detail="Alamat pengiriman harus diisi")
+
+    # Create order
     new_order = Order(
-        invoice_number=f"INV-{datetime.utcnow().strftime('%Y%m%d%H%M%S')}",
-        customer_id=current_user.customer.id, status="PENDING",
-        total=subtotal, tax=tax, grand_total=grand_total
+        invoice_number=f"INV-{datetime.utcnow().strftime('%Y%m%d%H%M%S')}-{str(uuid.uuid4())[:4].upper()}",
+        customer_id=current_user.customer.id,
+        status="PENDING",
+        total=subtotal,
+        tax=tax,
+        grand_total=grand_total,
+        delivery_type=delivery_type,
+        delivery_address=final_delivery_address,
     )
     db.add(new_order)
     db.commit()
     db.refresh(new_order)
-    for item in payload.items:
-        db.add(OrderItem(order_id=new_order.id, medicine_id=item.id, quantity=item.quantity, price=item.price))
-        batch = db.query(InventoryBatch).filter(InventoryBatch.medicine_id == item.id, InventoryBatch.quantity > 0).first()
+
+    # Create order items & deduct stock
+    for item in items:
+        db.add(OrderItem(
+            order_id=new_order.id,
+            medicine_id=item["id"],
+            quantity=int(item["quantity"]),
+            price=float(item["price"])
+        ))
+        batch = db.query(InventoryBatch).filter(
+            InventoryBatch.medicine_id == item["id"],
+            InventoryBatch.quantity > 0
+        ).first()
         if batch:
-            batch.quantity = max(0, batch.quantity - item.quantity)
+            batch.quantity = max(0, batch.quantity - int(item["quantity"]))
     db.commit()
-    db.add(Payment(order_id=new_order.id, amount=grand_total, method=payload.payment_method, status="PENDING"))
+
+    # Handle receipt upload
+    receipt_url = None
+    if receipt_file and receipt_file.filename:
+        upload_dir = "app/static/uploads/receipts"
+        os.makedirs(upload_dir, exist_ok=True)
+        ext = os.path.splitext(receipt_file.filename)[1].lower()
+        filename = f"receipt_{new_order.id}{ext}"
+        file_path = os.path.join(upload_dir, filename)
+        with open(file_path, "wb") as f:
+            content = await receipt_file.read()
+            f.write(content)
+        receipt_url = f"/static/uploads/receipts/{filename}"
+
+    # Payment record — PENDING until kasir verifies
+    db.add(Payment(
+        order_id=new_order.id,
+        amount=grand_total,
+        method=payment_method,
+        status="PENDING",
+        receipt_url=receipt_url
+    ))
     db.commit()
-    write_audit(db, current_user.id, "CHECKOUT", "Order", new_order.id, f"{new_order.invoice_number} Rp {grand_total:,.0f}")
+
+    write_audit(
+        db, current_user.id, "CHECKOUT", "Order", new_order.id,
+        f"{new_order.invoice_number} | {delivery_type.upper()} | Rp {grand_total:,.0f}"
+    )
     return {"status": "success", "order_id": new_order.id}

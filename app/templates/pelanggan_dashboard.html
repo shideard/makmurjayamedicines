@@ -4,6 +4,17 @@
 
 {% block content %}
 <div class="space-y-6">
+    <!-- Checkout success banner -->
+    {% if request.query_params.get('checkout') == 'success' %}
+    <div class="bg-green-50 border border-green-200 rounded-xl p-4 flex items-start gap-3">
+        <i data-lucide="check-circle" class="w-6 h-6 text-green-600 flex-shrink-0 mt-0.5"></i>
+        <div>
+            <p class="font-bold text-green-800">Pesanan berhasil dibuat! 🎉</p>
+            <p class="text-sm text-green-700 mt-1">Bukti pembayaran Anda sedang diverifikasi oleh kasir. Status pesanan akan diperbarui otomatis.</p>
+        </div>
+    </div>
+    {% endif %}
+
     <div class="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-k24-border pb-4 gap-4">
         <div>
             <h1 class="text-2xl font-bold text-k24-textPrimary">Halo, {{ user.name }}!</h1>
@@ -51,24 +62,42 @@
             {% if orders %}
             <div class="space-y-4">
                 {% for order in orders %}
-                <div class="border border-k24-border rounded-lg p-4 flex flex-col md:flex-row justify-between items-start md:items-center">
-                    <div>
-                        <p class="font-bold text-k24-textPrimary">{{ order.invoice_number }}</p>
-                        <p class="text-sm text-k24-textSecondary">{{ order.created_at.strftime("%d %B %Y - %H:%M") }}</p>
-                    </div>
-                    <div class="mt-2 md:mt-0 flex items-center gap-4">
-                        <span class="px-3 py-1 rounded-full text-xs font-bold
-                            {% if order.status == 'PENDING' %}bg-yellow-100 text-yellow-800
-                            {% elif order.status == 'PROCESSING' %}bg-blue-100 text-blue-800
-                            {% elif order.status == 'COMPLETED' %}bg-green-100 text-green-800
-                            {% else %}bg-gray-100 text-gray-600{% endif %}">
-                            {% if order.status == 'PENDING' %}⏳ Menunggu Konfirmasi Kasir
-                            {% elif order.status == 'PROCESSING' %}🔄 Sedang Diproses
-                            {% elif order.status == 'COMPLETED' %}✓ Selesai
-                            {% elif order.status == 'CANCELLED' %}✗ Dibatalkan
-                            {% else %}{{ order.status }}{% endif %}
-                        </span>
-                        <p class="font-bold text-k24-primary">Rp {{ "{:,.0f}".format(order.grand_total).replace(",", ".") }}</p>
+                <div class="border border-k24-border rounded-lg p-4">
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
+                        <div>
+                            <p class="font-bold text-k24-textPrimary">{{ order.invoice_number }}</p>
+                            <p class="text-sm text-k24-textSecondary">{{ order.created_at.strftime("%d %B %Y - %H:%M") }}</p>
+                            <div class="flex items-center gap-2 mt-1">
+                                <span class="text-xs px-2 py-0.5 rounded-full font-medium
+                                    {% if order.delivery_type == 'delivery' %}bg-blue-100 text-blue-700{% else %}bg-gray-100 text-gray-600{% endif %}">
+                                    {% if order.delivery_type == 'delivery' %}🚚 Diantar{% else %}🏥 Ambil di Klinik{% endif %}
+                                </span>
+                                {% if order.payment %}
+                                <span class="text-xs px-2 py-0.5 rounded-full font-medium
+                                    {% if order.payment.status == 'VERIFIED' %}bg-green-100 text-green-700
+                                    {% elif order.payment.status == 'PENDING' %}bg-yellow-100 text-yellow-700
+                                    {% else %}bg-red-100 text-red-700{% endif %}">
+                                    {% if order.payment.status == 'PENDING' %}⏳ Bayar: Menunggu Verifikasi
+                                    {% elif order.payment.status == 'VERIFIED' %}✅ Bayar: Terverifikasi
+                                    {% else %}❌ Bayar: Gagal{% endif %}
+                                </span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <span class="px-3 py-1 rounded-full text-xs font-bold
+                                {% if order.status == 'PENDING' %}bg-yellow-100 text-yellow-800
+                                {% elif order.status == 'PROCESSING' %}bg-blue-100 text-blue-800
+                                {% elif order.status == 'COMPLETED' %}bg-green-100 text-green-800
+                                {% else %}bg-gray-100 text-gray-600{% endif %}">
+                                {% if order.status == 'PENDING' %}⏳ Menunggu Konfirmasi Kasir
+                                {% elif order.status == 'PROCESSING' %}🔄 Sedang Diproses
+                                {% elif order.status == 'COMPLETED' %}✓ Selesai
+                                {% elif order.status == 'CANCELLED' %}✗ Dibatalkan
+                                {% else %}{{ order.status }}{% endif %}
+                            </span>
+                            <p class="font-bold text-k24-primary">Rp {{ "{:,.0f}".format(order.grand_total).replace(",", ".") }}</p>
+                        </div>
                     </div>
                 </div>
                 {% endfor %}

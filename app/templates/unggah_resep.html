@@ -12,10 +12,33 @@
     <div class="p-6">
         <form action="/unggah-resep" method="POST" enctype="multipart/form-data" class="space-y-6">
             <div>
-                <label for="doctor_name" class="block text-sm font-medium text-k24-textPrimary mb-2">Nama Dokter</label>
-                <input type="text" id="doctor_name" name="doctor_name" required
-                    class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-k24-primary focus:border-k24-primary"
-                    placeholder="Contoh: dr. Budi Santoso, Sp.PD">
+                <label for="doctor_name" class="block text-sm font-medium text-k24-textPrimary mb-2">
+                    Nama Dokter <span class="text-red-500">*</span>
+                </label>
+                <div class="relative">
+                    <i data-lucide="stethoscope" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none"></i>
+                    <select id="doctor_name" name="doctor_name" required
+                        class="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-md focus:ring-2 focus:ring-k24-primary focus:border-k24-primary outline-none appearance-none bg-white cursor-pointer text-k24-textPrimary">
+                        <option value="" disabled selected>-- Pilih dokter pemeriksa --</option>
+                        <optgroup label="Dokter Umum">
+                            <option value="dr. Ahmad Fauzi, M.Kes">dr. Ahmad Fauzi, M.Kes — Dokter Umum</option>
+                            <option value="dr. Dewi Rahayu, M.Kes">dr. Dewi Rahayu, M.Kes — Dokter Umum</option>
+                            <option value="dr. Hendra Kusuma">dr. Hendra Kusuma — Dokter Umum</option>
+                        </optgroup>
+                        <optgroup label="Dokter Spesialis">
+                            <option value="dr. Budi Santoso, Sp.PD">dr. Budi Santoso, Sp.PD — Spesialis Penyakit Dalam</option>
+                            <option value="dr. Sari Indah, Sp.A">dr. Sari Indah, Sp.A — Spesialis Anak</option>
+                            <option value="dr. Rizky Pratama, Sp.JP">dr. Rizky Pratama, Sp.JP — Spesialis Jantung</option>
+                            <option value="dr. Nanda Putri, Sp.OG">dr. Nanda Putri, Sp.OG — Spesialis Kandungan</option>
+                            <option value="dr. Irfan Hakim, Sp.N">dr. Irfan Hakim, Sp.N — Spesialis Neurologi</option>
+                        </optgroup>
+                    </select>
+                    <i data-lucide="chevron-down" class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none"></i>
+                </div>
+                <p class="text-xs text-gray-400 mt-1.5 flex items-center gap-1">
+                    <i data-lucide="info" class="w-3 h-3"></i>
+                    Pilih dokter yang mengeluarkan resep ini. Dokter harus terdaftar di Klinik Makmur Jaya.
+                </p>
             </div>
             
             <div>
